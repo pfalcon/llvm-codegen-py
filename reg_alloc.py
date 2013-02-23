@@ -56,9 +56,13 @@ class IRStream:
 
 ARG_REGS = ["R7", "R6", "R5", "R4"]
 RES_REGS = ["R7", "R6", "R5", "R4"]
+WORK_REGS = set(["R7", "R6", "R5", "R4", "R3", "R2"])
+REG_WIDTH = 8
 
 IR = [
+    ("@val", "global", "i16", "0"),
     ("@func", "define", "i32", ("i16", "%a"), ("i16", "%b")),
+    ("%2", "load", "i16*", "@val"),
     ("%1", "add", "i16", "%b", "%a"),
     ("", "ret", "i16", "%1"),
 ]
@@ -66,6 +70,15 @@ IR = [
 IR = IRStream.from_bare_list(IR)
 
 IR.dump()
+
+def get_width(type):
+    assert type[0] == "i"
+    if type[-1] == "*":
+        type = type[:-1]
+    return int(type[1:])
+
+def get_size(type):
+    return get_width(type) / REG_WIDTH
 
 def insert_after(l, el, new_el):
     i = l.index(el)
@@ -109,11 +122,14 @@ def collect_live_ranges(IR):
         if i.OPCODE == "define":
             for a in i.ARGS:
                 ranges[a[1]] = {"type": a[0], "def": no, "use": []}
+        elif i.OPCODE == "global":
+            pass
         else:
             if i.DEST:
                 ranges[i.DEST] = {"type": i.TYPE, "def": no, "use": []}
             for a in i.ARGS:
-                ranges[a]["use"].append(no)
+                if a[0] == "%":
+                    ranges[a]["use"].append(no)
 
     return ranges
 
@@ -122,11 +138,61 @@ def assign_in_out_regs(IR, ranges):
     for no, i in enumerate(IR):
         if i.OPCODE == "define":
             for a in i.ARGS:
-                ranges[a[1]]["reg"] = in_regs.pop(0)
+                size = get_width(a[0]) / REG_WIDTH
+                regs = in_regs[0:size]
+                in_regs = in_regs[size:]
+                ranges[a[1]]["reg"] = regs
         elif i.OPCODE == "ret":
-            ranges[i.ARGS[0]]["reg"] = RES_REGS[0]
+            size = get_width(i.TYPE) / REG_WIDTH
+            ranges[i.ARGS[0]]["reg"] = RES_REGS[0:size]
 
     return ranges
+
+def get_live_range(ranges, var):
+    if len(ranges[var]["use"]) == 0:
+        ## No uses? Dead var
+        #return None
+        return (ranges[var]["def"], ranges[var]["def"])
+    return (ranges[var]["def"], ranges[var]["use"][-1])
+
+def range_intersects(r1, r2):
+    if r1[0] > r2[0]:
+        # Make sure that r1 starts earlier
+        r2, r1 = r1, r2
+    print "*", r1, r2
+
+    if r1[1] >= r2[0]:
+        return True
+    return False
+
+def intersect_live_ranges(ranges, var):
+    print "!"
+    var_r = get_live_range(ranges, var)
+    if not var_r:
+        return None
+    intersecting_vars = []
+    for v, info in ranges.iteritems():
+        if v == var: continue
+        lr = get_live_range(ranges, v)
+        if range_intersects(var_r, lr):
+            intersecting_vars.append(v)
+    return intersecting_vars
+
+def assign_regs(IR, ranges):
+    for var, info in ranges.iteritems():
+        if "reg" in info: continue
+        inters = intersect_live_ranges(ranges, var)
+        print "covars:", var, inters
+        all_regs = set()
+        for v in inters:
+            all_regs |= set(ranges[v]["reg"])
+        print all_regs
+        free_regs = WORK_REGS - all_regs
+        print free_regs
+        regs = []
+        for i in xrange(get_size(ranges[var]["type"])):
+            regs.append(free_regs.pop())
+        ranges[var]["reg"] = regs
 
 
 def check_regs_assigned(ranges):
@@ -147,26 +213,48 @@ def another_reg(reg, reg_list):
     assert len(regs) == 1
     return regs[0]
 
+def split_value_op(asm, i, size, first_op, next_ops):
+    for b in xrange(size):
+        asm.append(("mov", "a", i.ARGS[0][b]))
+        if b == 0:
+            asm.append((first_op, "a", i.ARGS[1][b]))
+        else:
+            asm.append((next_ops, "a", i.ARGS[1][b]))
+        asm.append(("mov", i.DEST[b], "a"))
+
+
 def gen_asm(IR):
     asm = []
     for no, i in enumerate(IR):
+        size = get_width(i.TYPE) / REG_WIDTH
         if i.OPCODE == "define":
             pass
         elif i.OPCODE == "ret":
             asm.append("ret")
         elif i.OPCODE == "add":
-            if i.DEST in i.ARGS:
-                asm.append(("add", another_reg(i.DEST, i.ARGS), i.DEST))
-            else:
-                1/0
+            split_value_op(asm, i, size, "add", "addc")
+
+#            if i.DEST in i.ARGS:
+#                asm.append(("add", another_reg(i.DEST, i.ARGS), i.DEST))
+#            else:
+#                1/0
+        elif i.OPCODE == "load":
+            for b in xrange(size):
+                asm.append(("mov", i.DEST[b], i.ARGS[0] + "+%d" % b))
+        elif i.OPCODE == "global":
+            asm.append((i.DEST, "data", i.ARGS[0]))
         else:
+            print i.OPCODE
             1/0
     return asm
-
 
 print "======"
 ranges = collect_live_ranges(IR)
 assign_in_out_regs(IR, ranges)
+print "Assigned in/out regs"
+pprint(ranges)
+print "Assigned remaining regs"
+assign_regs(IR, ranges)
 pprint(ranges)
 check_regs_assigned(ranges)
 IR2 = rewrite_per_ranges(IR, ranges)
