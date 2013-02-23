@@ -104,21 +104,30 @@ def rewrite_in_args(IR):
     return IR
 
 def collect_live_ranges(IR):
-    in_regs = ARG_REGS[:]
     ranges = {}
     for no, i in enumerate(IR):
         if i.OPCODE == "define":
             for a in i.ARGS:
-                ranges[a[1]] = {"type": a[0], "def": no, "use": [], "reg": in_regs.pop(0)}
+                ranges[a[1]] = {"type": a[0], "def": no, "use": []}
         else:
             if i.DEST:
                 ranges[i.DEST] = {"type": i.TYPE, "def": no, "use": []}
             for a in i.ARGS:
                 ranges[a]["use"].append(no)
-            if i.OPCODE == "ret":
-                ranges[a]["reg"] = RES_REGS[0]
 
     return ranges
+
+def assign_in_out_regs(IR, ranges):
+    in_regs = ARG_REGS[:]
+    for no, i in enumerate(IR):
+        if i.OPCODE == "define":
+            for a in i.ARGS:
+                ranges[a[1]]["reg"] = in_regs.pop(0)
+        elif i.OPCODE == "ret":
+            ranges[i.ARGS[0]]["reg"] = RES_REGS[0]
+
+    return ranges
+
 
 def check_regs_assigned(ranges):
     for var, info in ranges.iteritems():
@@ -157,6 +166,7 @@ def gen_asm(IR):
 
 print "======"
 ranges = collect_live_ranges(IR)
+assign_in_out_regs(IR, ranges)
 pprint(ranges)
 check_regs_assigned(ranges)
 IR2 = rewrite_per_ranges(IR, ranges)
