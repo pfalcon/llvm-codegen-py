@@ -38,6 +38,8 @@ tree3 = (ADD, CONST(2), NAME("foo"))
 patterns = [
 [(ADD, CONST, CONST),
  ("mov a, #{1}", "add a, #{2}")],
+[(ADD, NAME, NAME),
+ ("mov a, {1}", "add a, {2}")],
 [{"pat": (ADD, NAME, CONST), "commute": True},
  ("mov a, {1}", "add a, #{2}")],
 [(ADD, ANY, ANY),
@@ -47,6 +49,13 @@ patterns = [
 [CONST, ("mov a, #{0}",)],
 [NAME, ("mov a, {0}",)],
 ]
+
+def istree(tree, size=0):
+    if type(tree) is not type(()):
+        return False
+    if size and len(tree) != size:
+        return False
+    return True
 
 class TreeTiler(object):
 
@@ -102,9 +111,8 @@ class TreeTiler(object):
                 pat = props["pat"]
             if self.match_tree_pattern(node, pat):
                 return node, xlat_pat, self.subtree_capture
-            elif "commute" in props:
+            elif props.get("commute") and istree(node, size=3):
                 # Applicable only to 2-arg operations
-                assert len(node) == 3
                 node_c = (node[0], node[2], node[1])
                 if self.match_tree_pattern(node_c, pat):
                     return node_c, xlat_pat, self.subtree_capture
@@ -117,20 +125,24 @@ class CodeGen(object):
     def __init__(self, patterns):
         self.patterns = patterns
         self.tiler = TreeTiler()
+        self.out = None
 
-    def gen(self, node):
-        out = []
+    def _gen(self, node):
         node, pat, subtrees = self.tiler.match_node(node, self.patterns)
         if pat is None:
             assert False, "Cannot translate node: %s" % node
         for inst_pattern in pat[1]:
             if isinstance(inst_pattern, EVAL):
-                self.gen(subtrees[inst_pattern.num])
+                self._gen(subtrees[inst_pattern.num])
             else:
                 if type(node) is not type(()):
                     node = (node,)
-                out.append(inst_pattern.format(*node))
-        return out
+                self.out.append(inst_pattern.format(*node))
+
+    def gen(self, node):
+        self.out = []
+        self._gen(node)
+        return self.out
 
 
 if __name__ == "__main__":
