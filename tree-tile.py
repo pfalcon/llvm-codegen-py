@@ -33,11 +33,15 @@ class EVAL(object):
 
 tree = (ADD, CONST(1), CONST(2))
 tree2 = (ADD, NAME("foo"), CONST(2))
+tree3 = (ADD, CONST(2), NAME("foo"))
 
 patterns = [
-#[(ADD, CONST, CONST), ("mov a, #{1}", "add a, #{2}")],
-[(ADD, NAME, CONST), ("mov a, {1}", "add a, #{2}")],
-[(ADD, ANY, ANY), (EVAL(0), "mov @r1, a", "inc r1", EVAL(1), "pop r2", "add a, r2")],
+[(ADD, CONST, CONST),
+ ("mov a, #{1}", "add a, #{2}")],
+[{"pat": (ADD, NAME, CONST), "commute": True},
+ ("mov a, {1}", "add a, #{2}")],
+[(ADD, ANY, ANY),
+ (EVAL(0), "mov @r1, a", "inc r1", EVAL(1), "pop r2", "add a, r2")],
 
 # Fallback nodes
 [CONST, ("mov a, #{0}",)],
@@ -82,11 +86,30 @@ class TreeTiler(object):
         return True
 
     def match_node(self, node, patterns):
-        for p in patterns:
+        """
+        Returns:
+            matched node (possibly transformed for commutativity, etc.)
+            pattern entry that matched
+            captured subtree of a pattern
+        """
+        for xlat_pat in patterns:
             self.subtree_capture = []
-            if self.match_tree_pattern(node, p[0]):
-                return p, self.subtree_capture
-        return None, None
+            pat = xlat_pat[0]
+            props = {}
+            print pat
+            if type(pat) is type({}):
+                props = pat
+                pat = props["pat"]
+            if self.match_tree_pattern(node, pat):
+                return node, p, self.subtree_capture
+            elif "commute" in props:
+                # Applicable only to 2-arg operations
+                assert len(node) == 3
+                node_c = (node[0], node[2], node[1])
+                if self.match_tree_pattern(node_c, pat):
+                    return node_c, xlat_pat, self.subtree_capture
+
+        return None, None, None
 
 
 class CodeGen(object):
@@ -96,7 +119,7 @@ class CodeGen(object):
         self.tiler = TreeTiler()
 
     def gen(self, node):
-        pat, subtrees = self.tiler.match_node(node, self.patterns)
+        node, pat, subtrees = self.tiler.match_node(node, self.patterns)
         if pat is None:
             assert False, "Cannot translate node: %s" % node
         for inst_pattern in pat[1]:
@@ -109,4 +132,4 @@ class CodeGen(object):
 
 cg = CodeGen(patterns)
 
-cg.gen(tree2)
+cg.gen(tree3)
