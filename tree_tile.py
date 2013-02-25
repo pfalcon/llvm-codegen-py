@@ -101,7 +101,7 @@ class TreeTiler(object):
                 props = pat
                 pat = props["pat"]
             if self.match_tree_pattern(node, pat):
-                return node, p, self.subtree_capture
+                return node, xlat_pat, self.subtree_capture
             elif "commute" in props:
                 # Applicable only to 2-arg operations
                 assert len(node) == 3
@@ -119,6 +119,7 @@ class CodeGen(object):
         self.tiler = TreeTiler()
 
     def gen(self, node):
+        out = []
         node, pat, subtrees = self.tiler.match_node(node, self.patterns)
         if pat is None:
             assert False, "Cannot translate node: %s" % node
@@ -128,8 +129,11 @@ class CodeGen(object):
             else:
                 if type(node) is not type(()):
                     node = (node,)
-                print inst_pattern.format(*node)
+                out.append(inst_pattern.format(*node))
+        return out
 
-cg = CodeGen(patterns)
 
-cg.gen(tree3)
+if __name__ == "__main__":
+    cg = CodeGen(patterns)
+    for i in cg.gen(tree3):
+        print i
