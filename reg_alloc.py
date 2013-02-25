@@ -1,6 +1,12 @@
 from pprint import pprint
 
 
+ARG_REGS = ["R7", "R6", "R5", "R4"]
+RES_REGS = ["R7", "R6", "R5", "R4"]
+WORK_REGS = set(["R7", "R6", "R5", "R4", "R3", "R2"])
+REG_WIDTH = 8
+
+
 class IREntry:
     """Container for intermediate representation(s). This is needed
     so there's static node's id() value."""
@@ -23,7 +29,7 @@ class IRStream:
         self.IR = IR
 
     @classmethod
-    def from_bare_list(cls, IR):
+    def from_list(cls, IR):
         IR = [IREntry(x) for x in IR]
         return cls(IR)
 
@@ -54,22 +60,7 @@ class IRStream:
 
 
 
-ARG_REGS = ["R7", "R6", "R5", "R4"]
-RES_REGS = ["R7", "R6", "R5", "R4"]
-WORK_REGS = set(["R7", "R6", "R5", "R4", "R3", "R2"])
-REG_WIDTH = 8
 
-IR = [
-    ("@val", "global", "i16", "0"),
-    ("@func", "define", "i32", ("i16", "%a"), ("i16", "%b")),
-    ("%2", "load", "i16*", "@val"),
-    ("%1", "add", "i16", "%b", "%a"),
-    ("", "ret", "i16", "%1"),
-]
-
-IR = IRStream.from_bare_list(IR)
-
-IR.dump()
 
 def get_width(type):
     assert type[0] == "i"
@@ -95,7 +86,7 @@ def add_cc_reg_copy(IR):
             IR2.append((RES_REGS[0], "copy", i.ARGS[1]))
 #                print i
             i.ARGS[1] = RES_REGS[0]
-            print "*", i
+#            print "*", i
             IR2.append(i)
         else:
             IR2.append(i)
@@ -159,14 +150,14 @@ def range_intersects(r1, r2):
     if r1[0] > r2[0]:
         # Make sure that r1 starts earlier
         r2, r1 = r1, r2
-    print "*", r1, r2
+#    print "*", r1, r2
 
-    if r1[1] >= r2[0]:
+#    if r1[1] >= r2[0]:
+    if r1[1] > r2[0]:
         return True
     return False
 
 def intersect_live_ranges(ranges, var):
-    print "!"
     var_r = get_live_range(ranges, var)
     if not var_r:
         return None
@@ -248,18 +239,30 @@ def gen_asm(IR):
             1/0
     return asm
 
-print "======"
-ranges = collect_live_ranges(IR)
-assign_in_out_regs(IR, ranges)
-print "Assigned in/out regs"
-pprint(ranges)
-print "Assigned remaining regs"
-assign_regs(IR, ranges)
-pprint(ranges)
-check_regs_assigned(ranges)
-IR2 = rewrite_per_ranges(IR, ranges)
-IR2.dump()
-pprint(gen_asm(IR2))
+if __name__ == "__main__":
+    IR = [
+    ("@val", "global", "i16", "0"),
+    ("@func", "define", "i32", ("i16", "%a"), ("i16", "%b")),
+    ("%2", "load", "i16*", "@val"),
+    ("%1", "add", "i16", "%b", "%a"),
+    ("", "ret", "i16", "%1"),
+    ]
+
+    IR = IRStream.from_list(IR)
+    IR.dump()
+
+    print "======"
+    ranges = collect_live_ranges(IR)
+    assign_in_out_regs(IR, ranges)
+    print "Assigned in/out regs"
+    pprint(ranges)
+    print "Assigned remaining regs"
+    assign_regs(IR, ranges)
+    pprint(ranges)
+    check_regs_assigned(ranges)
+    IR2 = rewrite_per_ranges(IR, ranges)
+    IR2.dump()
+    pprint(gen_asm(IR2))
 
 #IR2 = rewrite_return(IR)
 #IR2.dump()
