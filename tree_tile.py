@@ -36,14 +36,13 @@ tree2 = (ADD, NAME("foo"), CONST(2))
 tree3 = (ADD, CONST(2), NAME("foo"))
 
 patterns = [
-[(ADD, CONST, CONST),
- ("mov a, #{1}", "add a, #{2}")],
-[(ADD, NAME, NAME),
- ("mov a, {1}", "add a, {2}")],
-[{"pat": (ADD, NAME, CONST), "commute": True},
- ("mov a, {1}", "add a, #{2}")],
+[{"pat": (ADD, ANY, CONST), "commute": True},
+ (EVAL(1), "add a, #{2}")],
+[{"pat": (ADD, ANY, NAME), "commute": True},
+ (EVAL(1), "add a, {2}")],
+
 [(ADD, ANY, ANY),
- (EVAL(0), "mov @r1, a", "inc r1", EVAL(1), "pop r2", "add a, r2")],
+ (EVAL(1), "mov @r1, a", "inc r1", EVAL(2), "pop r2", "add a, r2")],
 
 # Fallback nodes
 [CONST, ("mov a, #{0}",)],
@@ -114,6 +113,7 @@ class TreeTiler(object):
             elif props.get("commute") and istree(node, size=3):
                 # Applicable only to 2-arg operations
                 node_c = (node[0], node[2], node[1])
+                self.subtree_capture = []
                 if self.match_tree_pattern(node_c, pat):
                     return node_c, xlat_pat, self.subtree_capture
 
@@ -133,7 +133,8 @@ class CodeGen(object):
             assert False, "Cannot translate node: %s" % node
         for inst_pattern in pat[1]:
             if isinstance(inst_pattern, EVAL):
-                self._gen(subtrees[inst_pattern.num])
+                # Numbering is 1-based for childs
+                self._gen(subtrees[inst_pattern.num - 1])
             else:
                 if type(node) is not type(()):
                     node = (node,)

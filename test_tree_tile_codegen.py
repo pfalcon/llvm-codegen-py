@@ -16,3 +16,10 @@ def test_add_n_n():
     cg = CodeGen(patterns)
     mi = cg.gen((ADD, NAME("foo"), NAME("bar")))
     assert mi == ["mov a, foo", "add a, bar"], mi
+
+def test_add_n_n_n():
+    cg = CodeGen(patterns)
+    mi = cg.gen((ADD, (ADD, NAME("foo"), NAME("bar")), NAME("baz")))
+    assert mi == ["mov a, foo", "add a, bar", "add a, baz"], mi
+    mi2 = cg.gen((ADD, NAME("baz"), (ADD, NAME("foo"), NAME("bar"))))
+    assert mi == mi2, "%s != %s" % (mi, mi2)
