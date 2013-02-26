@@ -66,7 +66,7 @@ class TreeTiler(object):
 #            print "matching trees:", tree, pattern
             if len(tree) != len(pattern):
                 return False
-            for node, subpat in zip(tree[1:], pattern[1:]):
+            for node, subpat in zip(tree, pattern):
                 if not self.match_tree_pattern(node, subpat):
                     return False
             return True
