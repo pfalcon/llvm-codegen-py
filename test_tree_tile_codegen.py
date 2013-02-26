@@ -46,3 +46,8 @@ def test_load_memx_n():
     cg = CodeGen(patterns)
     mi = cg.gen((MEMX, NAME("p")))
     assert mi == ["mov DPL, p", "mov DPH, p+1", "movx a, @dptr"], mi
+
+def test_store_memx_gen():
+    cg = CodeGen(patterns)
+    mi = cg.gen((STORE, NAME("v"), CONST(1)))
+    assert mi == ["mov a, #1", "mov v, a"], mi

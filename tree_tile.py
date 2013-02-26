@@ -1,6 +1,7 @@
 ADD = 1
 MEMI = 2
 MEMX = 3
+STORE = 4
 
 class ANY:
     "Wildcard match"
@@ -45,6 +46,8 @@ patterns = [
 
 [(ADD, ANY, ANY),
  (EVAL(1), "push A", EVAL(2), "pop R2", "add a, r2")],
+
+[(STORE, NAME, ANY), (EVAL([2]), "mov {1}, a")],
 
 # Fallback nodes
 [{"pat": (MEMI, CONST), "pred": lambda n: n[1].val < 128},
@@ -148,8 +151,14 @@ class CodeGen(object):
             assert False, "Cannot translate node: %s" % node
         for inst_pattern in pat[1]:
             if isinstance(inst_pattern, EVAL):
-                # Numbering is 1-based for childs
-                self._gen(subtrees[inst_pattern.num - 1])
+                if isinstance(inst_pattern.num, type([])):
+                    arg = node
+                    for i in inst_pattern.num:
+                        arg = arg[i]
+                    self._gen(arg)
+                else:
+                    # Numbering is 1-based for childs
+                    self._gen(subtrees[inst_pattern.num - 1])
             else:
                 if type(node) is not type(()):
                     node = (node,)
