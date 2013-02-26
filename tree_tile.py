@@ -1,4 +1,6 @@
 ADD = 1
+MEMI = 2
+MEMX = 3
 
 class ANY:
     "Wildcard match"
@@ -45,6 +47,8 @@ patterns = [
  (EVAL(1), "push A", EVAL(2), "pop R2", "add a, r2")],
 
 # Fallback nodes
+[(MEMI, CONST), ("mov r0, #{1}", "mov a,@r0")],
+[(MEMX, CONST), ("mov dptr, #{1}", "movx a,@dptr")],
 [CONST, ("mov a, #{0}",)],
 [NAME, ("mov a, {0}",)],
 ]
@@ -86,12 +90,10 @@ class TreeTiler(object):
             return True
 
         if type(pattern) is type:
-            if not isinstance(tree, pattern):
-                return False
-        else:
-                raise NotImplementedError
+            if isinstance(tree, pattern):
+                return True
 
-        return True
+        return False
 
     def match_node(self, node, patterns):
         """
