@@ -47,7 +47,7 @@ patterns = [
 [(ADD, ANY, ANY),
  (EVAL(1), "push A", EVAL(2), "pop R2", "add a, r2")],
 
-[(STORE, NAME, ANY), (EVAL([2]), "mov {1}, a")],
+[(STORE, NAME, ANY), (EVAL(2), "mov {1}, a")],
 
 # Fallback nodes
 [{"pat": (MEMI, CONST), "pred": lambda n: n[1].val < 128},
@@ -158,7 +158,8 @@ class CodeGen(object):
                     self._gen(arg)
                 else:
                     # Numbering is 1-based for childs
-                    self._gen(subtrees[inst_pattern.num - 1])
+#                    self._gen(subtrees[inst_pattern.num - 1])
+                    self._gen(node[inst_pattern.num])
             else:
                 if type(node) is not type(()):
                     node = (node,)
