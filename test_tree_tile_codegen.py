@@ -23,3 +23,9 @@ def test_add_n_n_n():
     assert mi == ["mov a, foo", "add a, bar", "add a, baz"], mi
     mi2 = cg.gen((ADD, NAME("baz"), (ADD, NAME("foo"), NAME("bar"))))
     assert mi == mi2, "%s != %s" % (mi, mi2)
+
+def test_add_generic():
+    cg = CodeGen(patterns)
+    mi = cg.gen((ADD, (ADD, NAME("v1"), NAME("v2")),
+                      (ADD, NAME("v3"), NAME("v4"))))
+    assert mi == ["mov a, v1", "add a, v2", "push A", "mov a, v3", "add a, v4", "pop R2", "add a, r2"], mi
