@@ -38,4 +38,6 @@ def test_load_memx():
 def test_load_memi():
     cg = CodeGen(patterns)
     mi = cg.gen((MEMI, CONST(10)))
-    assert mi == ["mov r0, #10", "mov a,@r0"], mi
+    assert mi == ["mov a,10"], mi
+    mi = cg.gen((MEMI, CONST(200)))
+    assert mi == ["mov r0, #200", "mov a,@r0"], mi

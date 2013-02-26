@@ -47,7 +47,10 @@ patterns = [
  (EVAL(1), "push A", EVAL(2), "pop R2", "add a, r2")],
 
 # Fallback nodes
-[(MEMI, CONST), ("mov r0, #{1}", "mov a,@r0")],
+[{"pat": (MEMI, CONST), "pred": lambda n: n[1].val < 128},
+ ("mov a,{1}", )],
+[{"pat": (MEMI, CONST), "pred": lambda n: n[1].val >= 128},
+ ("mov r0, #{1}", "mov a,@r0")],
 [(MEMX, CONST), ("mov dptr, #{1}", "movx a,@dptr")],
 [CONST, ("mov a, #{0}",)],
 [NAME, ("mov a, {0}",)],
@@ -110,14 +113,20 @@ class TreeTiler(object):
             if type(pat) is type({}):
                 props = pat
                 pat = props["pat"]
+            match = None
             if self.match_tree_pattern(node, pat):
-                return node, xlat_pat, self.subtree_capture
+                match = node, xlat_pat, self.subtree_capture
             elif props.get("commute") and istree(node, size=3):
                 # Applicable only to 2-arg operations
                 node_c = (node[0], node[2], node[1])
                 self.subtree_capture = []
                 if self.match_tree_pattern(node_c, pat):
-                    return node_c, xlat_pat, self.subtree_capture
+                    match = node_c, xlat_pat, self.subtree_capture
+            if match:
+                if not "pred" in props:
+                    return match
+                if props["pred"](match[0]):
+                    return match
 
         return None, None, None
 
