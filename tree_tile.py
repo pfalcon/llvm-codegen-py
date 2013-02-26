@@ -1,7 +1,7 @@
-ADD = 1
-MEMI = 2
-MEMX = 3
-STORE = 4
+ADD = "ADD"
+MEMI = "MEMI"
+MEMX = "MEMX"
+STORE = "STORE"
 
 class ANY:
     "Wildcard match"
