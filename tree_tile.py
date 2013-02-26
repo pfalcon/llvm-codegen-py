@@ -39,6 +39,11 @@ tree2 = (ADD, NAME("foo"), CONST(2))
 tree3 = (ADD, CONST(2), NAME("foo"))
 
 patterns = [
+# This matches DAG node actually
+# TODO: wary of side effects of node
+[{"pat": (ADD, ANY, ANY), "pred": lambda n: n[1] is n[2]},
+ (EVAL(1), "clr c", "rlc a")],
+
 [{"pat": (ADD, ANY, CONST), "commute": True},
  (EVAL(1), "add a, #{2}")],
 [{"pat": (ADD, ANY, NAME), "commute": True},

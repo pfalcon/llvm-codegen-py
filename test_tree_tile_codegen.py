@@ -12,7 +12,7 @@ def test_add_c_c_dag():
     node = CONST(2)
     tree = (ADD, node, node)
     mi = cg.gen(tree)
-    assert mi == ["mov a, #2", "add a, #2"], mi
+    assert mi == ["mov a, #2", "clr c", "rlc a"], mi
 
 def test_add_commute():
     cg = CodeGen(patterns)
