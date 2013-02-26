@@ -52,6 +52,10 @@ patterns = [
 [{"pat": (MEMI, CONST), "pred": lambda n: n[1].val >= 128},
  ("mov r0, #{1}", "mov a,@r0")],
 [(MEMX, CONST), ("mov dptr, #{1}", "movx a,@dptr")],
+
+[(MEMI, NAME), ("mov r0, {1}", "mov a,@r0")],
+[(MEMX, NAME), ("mov DPL, {1}", "mov DPH, {1}+1", "movx a, @dptr")],
+
 [CONST, ("mov a, #{0}",)],
 [NAME, ("mov a, {0}",)],
 ]

@@ -30,14 +30,19 @@ def test_add_generic():
                       (ADD, NAME("v3"), NAME("v4"))))
     assert mi == ["mov a, v1", "add a, v2", "push A", "mov a, v3", "add a, v4", "pop R2", "add a, r2"], mi
 
-def test_load_memx():
+def test_load_memx_c():
     cg = CodeGen(patterns)
     mi = cg.gen((MEMX, CONST(5)))
     assert mi == ["mov dptr, #5", "movx a,@dptr"], mi
 
-def test_load_memi():
+def test_load_memi_c():
     cg = CodeGen(patterns)
     mi = cg.gen((MEMI, CONST(10)))
     assert mi == ["mov a,10"], mi
     mi = cg.gen((MEMI, CONST(200)))
     assert mi == ["mov r0, #200", "mov a,@r0"], mi
+
+def test_load_memx_n():
+    cg = CodeGen(patterns)
+    mi = cg.gen((MEMX, NAME("p")))
+    assert mi == ["mov DPL, p", "mov DPH, p+1", "movx a, @dptr"], mi
