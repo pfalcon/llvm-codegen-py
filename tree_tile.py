@@ -44,14 +44,18 @@ patterns = [
 [{"pat": (ADD, ANY, NAME), "commute": True},
  (EVAL(1), "add a, {2}")],
 
+[{"pat": (ADD, ANY, (MEMI, CONST)), "commute": True},
+ (EVAL(1), "add a, {2[1]}")],
+
+
 [(ADD, ANY, ANY),
  (EVAL(1), "push A", EVAL(2), "pop R2", "add a, r2")],
 
 [(STORE, NAME, ANY), (EVAL(2), "mov {1}, a")],
 
 # Fallback nodes
-[{"pat": (MEMI, CONST), "pred": lambda n: n[1].val < 128},
- ("mov a,{1}", )],
+[{"pat": (MEMI, CONST), "pred": lambda n: type(n[1].val) == type("") or n[1].val < 128},
+ ("mov a, {1}", )],
 [{"pat": (MEMI, CONST), "pred": lambda n: n[1].val >= 128},
  ("mov r0, #{1}", "mov a,@r0")],
 [(MEMX, CONST), ("mov dptr, #{1}", "movx a,@dptr")],
@@ -62,6 +66,8 @@ patterns = [
 [CONST, ("mov a, #{0}",)],
 [NAME, ("mov a, {0}",)],
 ]
+
+# NAME => (MEM, CONST)
 
 def istree(tree, size=0):
     if type(tree) is not type(()):

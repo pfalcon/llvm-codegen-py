@@ -14,7 +14,7 @@ def test_add_commute():
 
 def test_add_n_n():
     cg = CodeGen(patterns)
-    mi = cg.gen((ADD, NAME("foo"), NAME("bar")))
+    mi = cg.gen((ADD, (MEMI, CONST("foo")), (MEMI, CONST("bar"))))
     assert mi == ["mov a, foo", "add a, bar"], mi
 
 def test_add_n_n_n():
@@ -38,7 +38,7 @@ def test_load_memx_c():
 def test_load_memi_c():
     cg = CodeGen(patterns)
     mi = cg.gen((MEMI, CONST(10)))
-    assert mi == ["mov a,10"], mi
+    assert mi == ["mov a, 10"], mi
     mi = cg.gen((MEMI, CONST(200)))
     assert mi == ["mov r0, #200", "mov a,@r0"], mi
 
