@@ -42,7 +42,7 @@ patterns = [
  (EVAL(1), "add a, {2}")],
 
 [(ADD, ANY, ANY),
- (EVAL(1), "mov @r1, a", "inc r1", EVAL(2), "pop r2", "add a, r2")],
+ (EVAL(1), "push A", EVAL(2), "pop R2", "add a, r2")],
 
 # Fallback nodes
 [CONST, ("mov a, #{0}",)],
