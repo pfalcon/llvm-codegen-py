@@ -6,6 +6,14 @@ def test_add_c_c():
     mi = cg.gen((ADD, CONST(1), CONST(2)))
     assert mi == ["mov a, #1", "add a, #2"], mi
 
+def test_add_c_c_dag():
+    # Test pattern match against DAG
+    cg = CodeGen(patterns)
+    node = CONST(2)
+    tree = (ADD, node, node)
+    mi = cg.gen(tree)
+    assert mi == ["mov a, #2", "add a, #2"], mi
+
 def test_add_commute():
     cg = CodeGen(patterns)
     mi1 = cg.gen((ADD, NAME("foo"), CONST(2)))
