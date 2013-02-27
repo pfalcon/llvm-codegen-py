@@ -1,7 +1,14 @@
+# Abstract machine operations
 ADD = "ADD"
 MEMI = "MEMI"
 MEMX = "MEMX"
 STORE = "STORE"
+CMP_LTE = "CMP_LTE"
+
+# 8051 registers IDs
+ACC = "ACC"
+FLAG_C = "FLAG_C"
+
 
 class ANY:
     "Wildcard match"
@@ -55,6 +62,9 @@ patterns = [
 
 [(ADD, ANY, ANY),
  (EVAL(1), "push A", EVAL(2), "pop R2", "add a, r2")],
+
+[(CMP_LTE, ANY, ANY),
+ {"inst": (EVAL(1), "push A", EVAL(2), "pop R2", "clr c", "subb a, r2"), "out": (ACC, FLAG_C)}],
 
 [(STORE, NAME, ANY), (EVAL(2), "mov {1}, a")],
 
