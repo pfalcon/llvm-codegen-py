@@ -84,6 +84,11 @@ class Digraph(object):
         else:
             return str(self.neigh_list)
 
+    def __eq__(self, other):
+        if self.neigh_list is not None and other.neigh_list is not None:
+            return self.neigh_list == other.neigh_list
+        raise NotImplementedError
+
 
 class Ungraph(Digraph):
     """Undirected graph. Implementation is based on Digraph, and requires
