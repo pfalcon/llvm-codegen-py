@@ -18,7 +18,7 @@ class RegColoring:
 
         while not self.g.empty():
             found = False
-            for n in self.g.iter_nodes():
+            for n in sorted(self.g.iter_nodes()):
                 if self.g.degree(n) < self.K:
                     found = True
                     self.node_stack.append((n, self.g.neighs(n)))
