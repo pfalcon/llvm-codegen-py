@@ -12,7 +12,8 @@ def assert_coloring(g, expected_coloring):
     print c.g
     c.g.normalize()
     assert c.g == org_g
-    assert c.get_coloring() == expected_coloring, c.get_coloring()
+    coloring = sorted(c.get_coloring())
+    assert coloring == expected_coloring, coloring
     print "-----------"
 
 
@@ -26,4 +27,26 @@ def test_color_2_nodes():
 
 def test_color_3_nodes():
     g = Ungraph.from_neigh_list({"a": ["b", "c"], "b": ["a", "c"], "c": ["a", "b"]})
-    assert_coloring(g, [('a', 2), ('c', 1), ('b', 0)])
+    assert_coloring(g, [('a', 2), ('b', 0), ('c', 1)])
+
+def test_color_4_nodes_1():
+    """
+    a-b
+    | |
+    d-c
+    """
+    g = Ungraph.from_neigh_list({
+        "a": ["b", "d"], "b": ["a", "c"], "c": ["b", "d"], "d": ["a", "c"]
+    })
+    assert_coloring(g, [('a', 1), ('b', 0), ('c', 1), ('d', 0)])
+
+def test_color_4_nodes_2():
+    """
+    a-b
+    |\|
+    d-c
+    """
+    g = Ungraph.from_neigh_list({
+        "a": ["b", "c", "d"], "b": ["a", "c"], "c": ["a", "b", "d"], "d": ["a", "c"]
+    })
+    assert_coloring(g, [('a', 2), ('b', 0), ('c', 1), ('d', 0)])
