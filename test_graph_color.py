@@ -50,3 +50,24 @@ def test_color_4_nodes_2():
         "a": ["b", "c", "d"], "b": ["a", "c"], "c": ["a", "b", "d"], "d": ["a", "c"]
     })
     assert_coloring(g, [('a', 2), ('b', 0), ('c', 1), ('d', 0)])
+
+def test_MCI_graph():
+    "Graph from MCIiJ p.221"
+    NEIGHS = {
+    "j": ["f", "e", "k", "d", "h", "g"],
+    "f": ["j", "e", "m"],
+    "e": ["j", "f", "m", "b"],
+    "m": ["f", "e", "b", "c"],
+    "b": ["k", "e", "m", "c", "d"],
+    "m": ["b", "e", "f", "d", "c"],
+    "k": ["j", "b", "d", "g"],
+    "h": ["j", "g"],
+    "g": ["h", "k", "j"],
+    "d": ["j", "k", "b", "m"],
+    "c": ["b", "m"],
+    }
+
+    g = Ungraph.from_neigh_list(NEIGHS)
+    g.normalize()
+    assert_coloring(g,
+        [('b', 3), ('c', 1), ('d', 2), ('e', 2), ('f', 1), ('g', 2), ('h', 1), ('j', 0), ('k', 1), ('m', 0)])
