@@ -146,7 +146,7 @@ class PInstruction(object):
             if self.opcode_name == "load":
                 return "   %%%s = %s %s" % (self.name, self.opcode_name, render_arg(self.operands[0]))
             if self.opcode_name == "icmp":
-                return "   %%%s = %s %s %s" % (self.name, self.opcode_name, PRED_MAP[self.predicate], render_args(self.operands))
+                return "   %%%s = %s %s %s" % (self.name, self.opcode_name, self.predicate, render_args(self.operands))
             if self.opcode_name == "phi":
                 args = ", ".join(["[ %%%s, %%%s ]" % x for x in self.incoming_vars])
                 return "   %%%s = %s %s %s" % (self.name, self.opcode_name, self.type, args)
