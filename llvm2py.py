@@ -5,6 +5,8 @@ from llvm.core import *
 import llvm
 
 
+INDENT = "  "
+
 PRED_MAP = {ICMP_EQ: "eq"}
 
 
@@ -144,25 +146,25 @@ class PInstruction(object):
     def __str__(self):
         if self.name:
             if self.opcode_name == "load":
-                return "   %%%s = %s %s" % (self.name, self.opcode_name, render_arg(self.operands[0]))
+                return INDENT + "%%%s = %s %s" % (self.name, self.opcode_name, render_arg(self.operands[0]))
             if self.opcode_name == "icmp":
-                return "   %%%s = %s %s %s" % (self.name, self.opcode_name, self.predicate, render_args(self.operands))
+                return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.predicate, render_args(self.operands))
             if self.opcode_name == "phi":
                 args = ", ".join(["[ %%%s, %%%s ]" % x for x in self.incoming_vars])
-                return "   %%%s = %s %s %s" % (self.name, self.opcode_name, self.type, args)
+                return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, args)
             opers = ", ".join([str(x) for x in self.operands])
-            return "   %%%s = %s %s %s" % (self.name, self.opcode_name, self.type, opers)
+            return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, opers)
         else:
             if self.opcode_name == "ret":
-                return "   %s %s %s" % (self.opcode_name, self.operands[0].type, self.operands[0])
+                return INDENT + "%s %s %s" % (self.opcode_name, self.operands[0].type, self.operands[0])
             if self.opcode_name == "store":
-                return "   %s %s, %s" % (self.opcode_name, render_arg(self.operands[0]), render_arg(self.operands[1]))
+                return INDENT + "%s %s, %s" % (self.opcode_name, render_arg(self.operands[0]), render_arg(self.operands[1]))
             if self.opcode_name == "br":
                 args_no = [0]
                 if len(self.operands) == 3:
                     args_no = [0, 2, 1]
-                return "   %s %s" % (self.opcode_name, ", ".join([render_arg(self.operands[x]) for x in args_no]))
-            return "   %s %s" % (self.opcode_name, ", ".join([render_arg(x) for x in self.operands]))
+                return INDENT + "%s %s" % (self.opcode_name, ", ".join([render_arg(self.operands[x]) for x in args_no]))
+            return INDENT + "%s %s" % (self.opcode_name, ", ".join([render_arg(x) for x in self.operands]))
 
     def __repr__(self):
         return self.__str__()
