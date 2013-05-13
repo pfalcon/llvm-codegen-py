@@ -176,6 +176,9 @@ class PBasicBlock(object):
         over it while modifying block."""
         return self.insts[:]
 
+    def insert(self, pos, inst):
+        self.insts.insert(pos, inst)
+
     def append(self, inst):
         self.insts.append(inst)
 
@@ -184,6 +187,9 @@ class PBasicBlock(object):
 
     def __iter__(self):
         return iter(self.insts)
+
+    def __len__(self):
+        return len(self.insts)
 
     def __getitem__(self, var_name):
         for i in self:
@@ -304,7 +310,7 @@ class PhiResolver(object):
                         for var, block in i.incoming_vars:
                             block = f[block]
                             mov = PInstruction(i.name, block[var].type, "mov", [PTmpVariable(var, block[var].type)])
-                            block.append(mov)
+                            block.insert(len(block) - 1, mov)
                         b.remove(i)
 
 
