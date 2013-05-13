@@ -109,6 +109,8 @@ def convert_arg(a):
         return PArgument(a.name, a.type)
     if isinstance(a, GlobalVariable):
         return PGlobalVariableRef(a.name, a.type)
+    if isinstance(a, Function):
+        return PGlobalVariableRef(a.name, a.type)
     if isinstance(a, ConstantInt):
         return PConstantInt(a.z_ext_value, a.type)
     if isinstance(a, BasicBlock):
