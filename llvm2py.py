@@ -133,7 +133,8 @@ class PInstruction(object):
         out_i.opcode_name = i.opcode_name
         out_i.predicate = None
         if hasattr(i, "predicate"):
-            out_i.predicate = i.predicate
+            out_i.predicate_code = i.predicate
+            out_i.predicate = PRED_MAP[i.predicate]
         out_i.operands = [convert_arg(x) for x in i.operands]
         if i.opcode_name == "phi":
             out_i.incoming_vars = [(o.name, o.basic_block.name) for o in i.operands]
