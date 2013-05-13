@@ -120,17 +120,24 @@ def convert_arg(a):
 
 class PInstruction(object):
 
-    def __init__(self, i):
+    def __init__(self, *args, **kwargs):
+        if args or kwargs:
+            self.name, self.type, self.opcode_name, self.operands = args
+
+    @classmethod
+    def from_llvm(cls, i):
 #        print i.name, i.type, i.opcode_name, i.operands
-        self.name = i.name
-        self.type = i.type
-        self.opcode_name = i.opcode_name
-        self.predicate = None
+        out_i = cls()
+        out_i.name = i.name
+        out_i.type = i.type
+        out_i.opcode_name = i.opcode_name
+        out_i.predicate = None
         if hasattr(i, "predicate"):
-            self.predicate = i.predicate
-        self.operands = [convert_arg(x) for x in i.operands]
+            out_i.predicate = i.predicate
+        out_i.operands = [convert_arg(x) for x in i.operands]
         if i.opcode_name == "phi":
-            self.incoming_vars = [(o.name, o.basic_block.name) for o in i.operands]
+            out_i.incoming_vars = [(o.name, o.basic_block.name) for o in i.operands]
+        return out_i
 
     def __str__(self):
         if self.name:
@@ -161,14 +168,28 @@ class PInstruction(object):
 
 class PBasicBlock(object):
     def __init__(self, label):
-        self.label = label
+        self.name = label
         self.insts = []
+
+    def instructions(self):
+        """Return copy of block's instruction list, for you can iterate
+        over it while modifying block."""
+        return self.insts[:]
 
     def append(self, inst):
         self.insts.append(inst)
 
+    def remove(self, inst):
+        self.insts.remove(inst)
+
     def __iter__(self):
         return iter(self.insts)
+
+    def __getitem__(self, var_name):
+        for i in self:
+            if i.name == var_name:
+                return i
+
 
 class PFunction(object):
     def __init__(self, f):
@@ -183,6 +204,11 @@ class PFunction(object):
 
     def __iter__(self):
         return iter(self.bblocks)
+
+    def __getitem__(self, bblock_label):
+        for b in self:
+            if b.name == bblock_label:
+                return b
 
     def __str__(self):
         out = []
@@ -227,7 +253,7 @@ class IRConverter(object):
                 out_b = PBasicBlock(b.name)
                 for i in b.instructions:
 #                            print "# %s" % i
-                    out_b.append(PInstruction(i))
+                    out_b.append(PInstruction.from_llvm(i))
                 out_f.append(out_b)
             out_mod.append(out_f)
 
@@ -259,11 +285,26 @@ class IRRenderer(object):
             last_b = None
             for b in f:
                 if last_b: print
-                print "%s:" % b.label
+                print "%s:" % b.name
                 for i in b:
                     print i
                 last_b = b
             print "}"
+
+
+class PhiResolver(object):
+
+    @classmethod
+    def convert(cls, mod):
+        for f in mod.functions:
+            for b in f:
+                for i in b.instructions():
+                    if i.opcode_name == "phi":
+                        for var, block in i.incoming_vars:
+                            block = f[block]
+                            mov = PInstruction(i.name, block[var].type, "mov", [PTmpVariable(var, block[var].type)])
+                            block.append(mov)
+                        b.remove(i)
 
 
 if __name__ == "__main__":
@@ -271,4 +312,5 @@ if __name__ == "__main__":
         mod = Module.from_assembly(asm)
     out_mod = IRConverter.convert(mod)
     #print "============="
+    PhiResolver.convert(out_mod)
     IRRenderer.render(out_mod)
