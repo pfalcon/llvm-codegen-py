@@ -266,8 +266,9 @@ class IRRenderer(object):
             print "}"
 
 
-with open(sys.argv[1]) as asm:
-    mod = Module.from_assembly(asm)
-out_mod = IRConverter.convert(mod)
-#print "============="
-IRRenderer.render(out_mod)
+if __name__ == "__main__":
+    with open(sys.argv[1]) as asm:
+        mod = Module.from_assembly(asm)
+    out_mod = IRConverter.convert(mod)
+    #print "============="
+    IRRenderer.render(out_mod)
