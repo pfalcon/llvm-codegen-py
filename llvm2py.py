@@ -242,7 +242,10 @@ class IRConverter(object):
             f_type = f_type.split(" ", 1)
             f_type = f_type[0] + " function " + f_type[1]
             for b in f.basic_blocks:
-#                   print "BB name:", b.name
+#                print "BB name:", b.name
+                if not b.name:
+                    b.name = "%d" % tmp_i
+                    tmp_i += 1
                 for i in b.instructions:
 #                    print i
                     if not i.name and i.type != Type.void():
