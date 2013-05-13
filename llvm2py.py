@@ -198,6 +198,7 @@ class PFunction(object):
         self.args = [convert_arg(x) for x in f.args]
         self.is_declaration = f.is_declaration
         self.bblocks = []
+        self.result_type = prim_type(str(self.type))
 
     def append(self, inst):
         self.bblocks.append(inst)
@@ -215,7 +216,7 @@ class PFunction(object):
         for a in self.args:
             out.append("%s %%%s" % (a.type, a.name))
         pref = "declare" if self.is_declaration else "define"
-        return "%s %s @%s(%s)" % (pref, prim_type(str(self.type)), self.name, ", ".join(out))
+        return "%s %s @%s(%s)" % (pref, self.result_type, self.name, ", ".join(out))
 
 
 
