@@ -35,11 +35,12 @@ class PModule(object):
 class PGlobalVariable(object):
     def __init__(self, v):
         self.name = v.name
-        self.type = v.type
+        self.pointer_type = v.type
+        self.type = str(v.type)[:-1]
         self.is_declaration = v.is_declaration
 
     def __str__(self):
-        return "@%s = common global %s 0" % (self.name, str(self.type)[:-1])
+        return "@%s = common global %s 0" % (self.name, self.type)
 
     def __repr__(self):
         return self.__str__()
