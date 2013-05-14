@@ -19,8 +19,15 @@ def render_arg(arg):
     else:
         return "%s %s" % (arg.type, arg)
 
+def render_typed_arg(arg):
+    return "%s %s" % (arg.type, arg)
+
 def render_args(args):
     return ", ".join([render_arg(x) for x in args])
+
+def render_typed_args(args):
+    return ", ".join([render_typed_arg(x) for x in args])
+
 
 class PModule(object):
     def __init__(self):
@@ -104,6 +111,25 @@ class PLabelRef(object):
     def __repr__(self):
         return self.__str__()
 
+class PConstantExpr(object):
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def from_llvm(cls, expr):
+        e = cls()
+        e.type = expr.type
+        e.opcode_name = expr.opcode_name
+        e.operands = [convert_arg(x) for x in expr.operands]
+        return e
+
+    def __str__(self):
+        return "%s(%s)" % (self.opcode_name, render_typed_args(self.operands))
+
+    def __repr__(self):
+        return self.__str__()
+
 def convert_arg(a):
     if isinstance(a, Argument):
         return PArgument(a.name, a.type)
@@ -113,6 +139,8 @@ def convert_arg(a):
         return PGlobalVariableRef(a.name, a.type)
     if isinstance(a, ConstantInt):
         return PConstantInt(a.z_ext_value, a.type)
+    if isinstance(a, ConstantExpr):
+        return PConstantExpr.from_llvm(a)
     if isinstance(a, BasicBlock):
         return PLabelRef(a.name)
     if isinstance(a, Instruction):
@@ -154,8 +182,11 @@ class PInstruction(object):
             if self.opcode_name == "phi":
                 args = ", ".join(["[ %%%s, %%%s ]" % x for x in self.incoming_vars])
                 return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, args)
-            opers = ", ".join([str(x) for x in self.operands])
-            return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, opers)
+            if self.opcode_name == "call":
+                func = self.operands[-1]
+                args = self.operands[:-1]
+                return INDENT + "%%%s = %s %s %s(%s)" % (self.name, self.opcode_name, self.type, func, render_typed_args(args))
+            return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, render_args(self.operands))
         else:
             if self.opcode_name == "ret":
                 return INDENT + "%s %s %s" % (self.opcode_name, self.operands[0].type, self.operands[0])
