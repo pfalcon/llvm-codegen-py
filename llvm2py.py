@@ -329,11 +329,6 @@ class IRRenderer(object):
 
     @staticmethod
     def render(out_mod):
-        for f in out_mod:
-            if f.is_declaration:
-                print str(f)
-                print
-
         print
         for v in out_mod.global_variables:
             print v
@@ -341,6 +336,8 @@ class IRRenderer(object):
 
         for f in out_mod:
             if f.is_declaration:
+                print str(f)
+                print
                 continue
             else:
                 print str(f) + " {"
@@ -353,6 +350,7 @@ class IRRenderer(object):
                     print i
                 last_b = b
             print "}"
+            print
 
 
 class PhiResolver(object):
