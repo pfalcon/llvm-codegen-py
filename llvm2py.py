@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import re
 
 from llvm.core import *
 import llvm
@@ -47,9 +48,10 @@ class PGlobalVariable(object):
         self.pointer_type = v.type
         self.type = str(v.type)[:-1]
         self.is_declaration = v.is_declaration
+        self.initializer = convert_arg(v.initializer)
 
     def __str__(self):
-        return "@%s = common global %s 0" % (self.name, self.type)
+        return "@%s = common global %s %s" % (self.name, self.type, self.initializer)
 
     def __repr__(self):
         return self.__str__()
@@ -81,6 +83,18 @@ class PConstantInt(object):
     def __init__(self, value, type):
         self.value = value
         self.type = type
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return self.__str__()
+
+class PConstantDataArray(object):
+    def __init__(self, v):
+        self.type = v.type
+        m = re.match(r"\[.+? x .+?\] (.+)", str(v))
+        self.value = m.group(1)
 
     def __str__(self):
         return str(self.value)
@@ -139,6 +153,8 @@ def convert_arg(a):
         return PGlobalVariableRef(a.name, a.type)
     if isinstance(a, ConstantInt):
         return PConstantInt(a.z_ext_value, a.type)
+    if isinstance(a, ConstantDataArray):
+        return PConstantDataArray(a)
     if isinstance(a, ConstantExpr):
         return PConstantExpr.from_llvm(a)
     if isinstance(a, BasicBlock):
