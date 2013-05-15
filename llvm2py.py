@@ -49,7 +49,8 @@ class PGlobalVariable(object):
     def __init__(self, v):
         self.name = v.name
         self.pointer_type = v.type
-        self.type = str(v.type)[:-1]
+        self.type = v.type
+        self.type_str = str(v.type)[:-1]
         self.is_declaration = v.is_declaration
         self.initializer = convert_arg(v.initializer)
         self.linkage = LINKAGE_MAP[v.linkage]
@@ -64,7 +65,7 @@ class PGlobalVariable(object):
         if self.global_constant:
             flags.append("constant")
         flags = " ".join(flags)
-        s = "@%s = %s %s %s %s" % ( self.name, self.linkage, flags, self.type, self.initializer)
+        s = "@%s = %s %s %s %s" % ( self.name, self.linkage, flags, self.type_str, self.initializer)
         if self.alignment:
             s += ", align %d" % self.alignment
         return s
