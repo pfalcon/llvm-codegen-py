@@ -29,6 +29,9 @@ def render_args(args):
 def render_typed_args(args):
     return ", ".join([render_typed_arg(x) for x in args])
 
+def render_types(args):
+    return ", ".join([str(x.type) for x in args])
+
 
 class PModule(object):
     def __init__(self):
@@ -271,11 +274,10 @@ class PFunction(object):
                 return b
 
     def __str__(self):
-        out = []
-        for a in self.args:
-            out.append("%s %%%s" % (a.type, a.name))
-        pref = "declare" if self.is_declaration else "define"
-        return "%s %s @%s(%s)" % (pref, self.result_type, self.name, ", ".join(out))
+        if self.is_declaration:
+            return "declare %s @%s(%s)" % (self.result_type, self.name, render_types(self.args))
+        else:
+            return "define %s @%s(%s)" % (self.result_type, self.name, render_typed_args(self.args))
 
 
 
