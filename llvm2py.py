@@ -9,7 +9,7 @@ import llvm
 INDENT = "  "
 
 PRED_MAP = {ICMP_EQ: "eq"}
-
+LINKAGE_MAP = {LINKAGE_PRIVATE: "private", LINKAGE_COMMON: "common"}
 
 def prim_type(type):
     return type.split(" ", 1)[0]
@@ -52,9 +52,22 @@ class PGlobalVariable(object):
         self.type = str(v.type)[:-1]
         self.is_declaration = v.is_declaration
         self.initializer = convert_arg(v.initializer)
+        self.linkage = LINKAGE_MAP[v.linkage]
+        self.alignment = v.alignment
+        self.global_constant = v.global_constant
+        self.unnamed_addr = "unnamed_addr" in str(v)
 
     def __str__(self):
-        return "@%s = common global %s %s" % (self.name, self.type, self.initializer)
+        flags = []
+        if self.unnamed_addr:
+            flags.append("unnamed_addr")
+        if self.global_constant:
+            flags.append("constant")
+        flags = " ".join(flags)
+        s = "@%s = %s %s %s %s" % ( self.name, self.linkage, flags, self.type, self.initializer)
+        if self.alignment:
+            s += ", align %d" % self.alignment
+        return s
 
     def __repr__(self):
         return self.__str__()
@@ -310,6 +323,11 @@ class IRConverter(object):
         out_mod = PModule()
 
         for v in mod.global_variables:
+#            print dir(v)
+#            for a in dir(v):
+#                print a, getattr(v, a)
+#            print v.visibility, v.linkage, "=%s=" % v.section
+#            print v.initializer
             out_mod.global_variables.append(PGlobalVariable(v))
 
         for f in mod.functions:
