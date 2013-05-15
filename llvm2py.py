@@ -272,6 +272,7 @@ class PFunction(object):
         self.type = f.type
         self.args = [convert_arg(x) for x in f.args]
         self.is_declaration = f.is_declaration
+        self.vararg = f.type.pointee.vararg
         self.bblocks = []
         self.result_type = prim_type(str(self.type))
 
@@ -288,7 +289,10 @@ class PFunction(object):
 
     def __str__(self):
         if self.is_declaration:
-            return "declare %s @%s(%s)" % (self.result_type, self.name, render_types(self.args))
+#            return "declare %s @%s(%s)" % (self.result_type, self.name, render_types(self.args))
+            # This handles stuff like varargs
+            rest, argt = str(self.type.pointee).split(" ", 1)
+            return "declare %s @%s%s" % (self.result_type, self.name, argt)
         else:
             return "define %s @%s(%s)" % (self.result_type, self.name, render_typed_args(self.args))
 
