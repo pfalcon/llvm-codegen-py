@@ -166,7 +166,7 @@ def convert_arg(a):
     if isinstance(a, GlobalVariable):
         return PGlobalVariableRef(a.name, a.type)
     if isinstance(a, Function):
-        return PGlobalVariableRef(a.name, a.type)
+        return PFunction(a, is_ref=True)
     if isinstance(a, ConstantInt):
         return PConstantInt(a.z_ext_value, a.type)
     if isinstance(a, ConstantDataArray):
@@ -217,7 +217,10 @@ class PInstruction(object):
             if self.opcode_name == "call":
                 func = self.operands[-1]
                 args = self.operands[:-1]
-                return INDENT + "%%%s = %s %s %s(%s)" % (self.name, self.opcode_name, self.type, func, render_typed_args(args))
+                if func.vararg:
+                    return INDENT + "%%%s = %s %s %s(%s)" % (self.name, self.opcode_name, func.type, func, render_typed_args(args))
+                else:
+                    return INDENT + "%%%s = %s %s %s(%s)" % (self.name, self.opcode_name, self.type, func, render_typed_args(args))
             return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, render_args(self.operands))
         else:
             if self.opcode_name == "ret":
@@ -267,7 +270,8 @@ class PBasicBlock(object):
 
 
 class PFunction(object):
-    def __init__(self, f):
+    def __init__(self, f, is_ref=False):
+        self.is_ref = is_ref
         self.name = f.name
         self.type = f.type
         self.args = [convert_arg(x) for x in f.args]
@@ -288,6 +292,8 @@ class PFunction(object):
                 return b
 
     def __str__(self):
+        if self.is_ref:
+            return "@" + self.name
         if self.is_declaration:
 #            return "declare %s @%s(%s)" % (self.result_type, self.name, render_types(self.args))
             # This handles stuff like varargs
