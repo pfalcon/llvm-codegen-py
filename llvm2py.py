@@ -24,7 +24,11 @@ def render_untyped_arg(arg):
     return str(arg)
 
 def render_typed_arg(arg):
-    return "%s %s" % (arg.type, arg)
+    attrs = getattr(arg, "attributes", 0)
+    flags = ""
+    if attrs & ATTR_NO_CAPTURE:
+        flags += " nocapture"
+    return "%s%s %s" % (arg.type, flags, arg)
 
 def render_args(args):
     return ", ".join([render_arg(x) for x in args])
@@ -307,7 +311,12 @@ class PFunction(object):
         self.is_ref = is_ref
         self.name = f.name
         self.type = f.type
-        self.args = [convert_arg(x) for x in f.args]
+        self.args = []
+        for x in f.args:
+            attrs = x.get_attribute()
+            x = convert_arg(x)
+            x.attributes = attrs
+            self.args.append(x)
         self.is_declaration = f.is_declaration
         self.vararg = f.type.pointee.vararg
         self.does_not_throw = f.does_not_throw
