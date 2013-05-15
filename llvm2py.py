@@ -347,7 +347,10 @@ class IRRenderer(object):
             last_b = None
             for b in f:
                 if last_b: print
-                print "%s:" % b.name
+                if b.name[0].isdigit():
+                    print ";%s:" % b.name
+                else:
+                    print "%s:" % b.name
                 for i in b:
                     print i
                 last_b = b
