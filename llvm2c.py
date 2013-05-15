@@ -10,15 +10,47 @@ def render_i(s):
 def render(s):
     print s
 
+def llvm2c_str(s):
+    "Convert LLVM string constant to C string constant"
+    out = '"'
+    for i in xrange(1, len(s) - 1):
+        out += s[i]
+        if s[i] == "\\":
+            out += "x"
+    return out + '"'
+
 def var(v):
     if isinstance(v, PConstantInt):
         return str(v)
+    if isinstance(v, PConstantExpr):
+        if v.opcode_name == "getelementptr":
+            return "getelementptr(%s)" % val_list(v.operands)
+        return str(v)
+    if isinstance(v, PConstantDataArray):
+        s = str(v)
+        if s.startswith('c"'):
+            return llvm2c_str(s[1:])
+        return s
     if isinstance(v, PLabelRef):
         return "_" + v.name
     s = v.name
     if s[0].isdigit():
         return "_tmp" + s
+    s = s.replace(".", "_")
     return s
+
+def val_list(l):
+    args = [var(x) for x in l]
+    return ", ".join(args)
+
+
+def cdecl(typ, v):
+    "Convert LLVM type and var name to C declaration"
+    assert type(typ) is not type("")
+#    print "!", typ, type(typ)
+    if isinstance(typ, ArrayType):
+        return "%s %s[%s]" % (typ.element, var(v), typ.count)
+    return "%s %s" % (str(typ), var(v))
 
 def convert_i(i, defined_vars):
     op = i.opcode_name
@@ -31,6 +63,10 @@ def convert_i(i, defined_vars):
             render_i("if (%s) goto %s; else goto %s;" % (var(args[0]), var(args[2]), var(args[1])))
         else:
             render_i("goto %s;" % var(args[0]))
+    elif op == "call":
+        func = i.operands[-1]
+        args = i.operands[:-1]
+        render_i("%s = %s(%s);" % (cdecl(i.type, i), func.name, val_list(args)))
     elif op == "load":
             render_i("%s %s = %s;" % (i.type, var(i), var(args[0])))
     elif op == "store":
@@ -63,11 +99,14 @@ def convert(mod):
         if f.is_declaration:
             args = []
             for a in f.args:
-                    args.append("%s %s" % (a.type, a.name))
+                args.append("%s %s" % (a.type, a.name))
+            if f.vararg:
+                args.append("...")
             render("%s %s(%s);" % (f.result_type, f.name, ", ".join(args)))
 
     for v in mod.global_variables:
-        render("%s %s = %s;" % (v.type, v.name, 0))
+#        render("%s %s = %s;" % (ctype(v.type.pointee), v.name, 0))
+        render("%s = %s;" % (cdecl(v.type.pointee, v), var(v.initializer)))
 
     for f in mod.functions:
         if not f.is_declaration:
