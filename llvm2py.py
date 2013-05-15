@@ -213,7 +213,9 @@ class PInstruction(object):
             out_i.predicate_code = i.predicate
             out_i.predicate = PRED_MAP[i.predicate]
         out_i.operands = [convert_arg(x) for x in i.operands]
-        if i.opcode_name == "phi":
+        if i.opcode_name == "getelementptr":
+            out_i.inbounds = "inbounds" in str(i)
+        elif i.opcode_name == "phi":
             out_i.incoming_vars = []
             for o in i.operands:
                 # If this is instruction, i.e. tmpvar, then we came from it basic block
@@ -247,6 +249,11 @@ class PInstruction(object):
                     return INDENT + "%%%s = %s %s %s(%s)" % (self.name, self.opcode_name, func.type, func, render_typed_args(args))
                 else:
                     return INDENT + "%%%s = %s %s %s(%s)" % (self.name, self.opcode_name, self.type, func, render_typed_args(args))
+            if self.opcode_name == "getelementptr":
+                op = "getelementptr"
+                if self.inbounds:
+                    op += " inbounds"
+                return INDENT + "%%%s = %s %s" % (self.name, op, render_typed_args( self.operands))
             return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, render_untyped_args(self.operands))
         else:
             if self.opcode_name == "ret":
