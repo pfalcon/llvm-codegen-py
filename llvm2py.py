@@ -20,13 +20,24 @@ def render_arg(arg):
     else:
         return "%s %s" % (arg.type, arg)
 
+def render_untyped_arg(arg):
+    return str(arg)
+
 def render_typed_arg(arg):
     return "%s %s" % (arg.type, arg)
 
 def render_args(args):
     return ", ".join([render_arg(x) for x in args])
 
+def render_untyped_args(args):
+    """Render list of args without any types.
+    (E.g. for instructions with homogenic arg types, where type
+    of arge is the the same as type of instruction.)"""
+    return ", ".join([render_untyped_arg(x) for x in args])
+
 def render_typed_args(args):
+    """Render list of args, each arg accompanied by type.
+    (E.g. function call args)"""
     return ", ".join([render_typed_arg(x) for x in args])
 
 def render_types(args):
@@ -236,7 +247,7 @@ class PInstruction(object):
                     return INDENT + "%%%s = %s %s %s(%s)" % (self.name, self.opcode_name, func.type, func, render_typed_args(args))
                 else:
                     return INDENT + "%%%s = %s %s %s(%s)" % (self.name, self.opcode_name, self.type, func, render_typed_args(args))
-            return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, render_args(self.operands))
+            return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, render_untyped_args(self.operands))
         else:
             if self.opcode_name == "ret":
                 return INDENT + "%s %s %s" % (self.opcode_name, self.operands[0].type, self.operands[0])
