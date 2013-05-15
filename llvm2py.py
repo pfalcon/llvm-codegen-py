@@ -203,7 +203,21 @@ class PInstruction(object):
             out_i.predicate = PRED_MAP[i.predicate]
         out_i.operands = [convert_arg(x) for x in i.operands]
         if i.opcode_name == "phi":
-            out_i.incoming_vars = [(o.name, o.basic_block.name) for o in i.operands]
+            out_i.incoming_vars = []
+            for o in i.operands:
+                # If this is instruction, i.e. tmpvar, then we came from it basic block
+                if isinstance(o, Instruction):
+                    out_i.incoming_vars.append((convert_arg(o), o.basic_block.name))
+                # Alternatively, this can be incoming function argument from basic block %0
+                elif isinstance(o, Argument):
+                    out_i.incoming_vars.append((convert_arg(o), "0"))
+                # Finally, this can be implicit initialization constant also from bbock %0
+                # Not that de-SSA-ization must convert this implicit initialization into
+                # explicit!
+                elif isinstance(o, ConstantInt):
+                    out_i.incoming_vars.append((convert_arg(o), "0"))
+                else:
+                    assert False, "Unsupported phi arg type"
         return out_i
 
     def __str__(self):
@@ -213,7 +227,7 @@ class PInstruction(object):
             if self.opcode_name == "icmp":
                 return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.predicate, render_args(self.operands))
             if self.opcode_name == "phi":
-                args = ", ".join(["[ %%%s, %%%s ]" % x for x in self.incoming_vars])
+                args = ", ".join(["[ %s, %%%s ]" % x for x in self.incoming_vars])
                 return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, args)
             if self.opcode_name == "call":
                 func = self.operands[-1]
