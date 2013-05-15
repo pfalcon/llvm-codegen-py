@@ -310,6 +310,7 @@ class PFunction(object):
         self.args = [convert_arg(x) for x in f.args]
         self.is_declaration = f.is_declaration
         self.vararg = f.type.pointee.vararg
+        self.does_not_throw = f.does_not_throw
         self.bblocks = []
         self.result_type = prim_type(str(self.type))
 
@@ -327,13 +328,16 @@ class PFunction(object):
     def __str__(self):
         if self.is_ref:
             return "@" + self.name
+        flags = ""
+        if self.does_not_throw:
+            flags += " nounwind"
         if self.is_declaration:
 #            return "declare %s @%s(%s)" % (self.result_type, self.name, render_types(self.args))
             # This handles stuff like varargs
             rest, argt = str(self.type.pointee).split(" ", 1)
-            return "declare %s @%s%s" % (self.result_type, self.name, argt)
+            return "declare %s @%s%s%s" % (self.result_type, self.name, argt, flags)
         else:
-            return "define %s @%s(%s)" % (self.result_type, self.name, render_typed_args(self.args))
+            return "define %s @%s(%s)%s" % (self.result_type, self.name, render_typed_args(self.args), flags)
 
 
 
