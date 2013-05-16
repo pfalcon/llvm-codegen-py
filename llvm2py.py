@@ -24,9 +24,9 @@ def render_untyped_arg(arg):
     return str(arg)
 
 def render_typed_arg(arg):
-    attrs = getattr(arg, "attributes", 0)
+    attrs = getattr(arg, "attributes", set())
     flags = ""
-    if attrs & ATTR_NO_CAPTURE:
+    if ATTR_NO_CAPTURE in attrs:
         flags += " nocapture"
     return "%s%s %s" % (arg.type, flags, arg)
 
@@ -313,7 +313,7 @@ class PFunction(object):
         self.type = f.type
         self.args = []
         for x in f.args:
-            attrs = x.get_attribute()
+            attrs = x.attributes
             x = convert_arg(x)
             x.attributes = attrs
             self.args.append(x)
