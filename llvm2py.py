@@ -221,18 +221,20 @@ class PInstruction(object):
             out_i.inbounds = "inbounds" in str(i)
         elif i.opcode_name == "phi":
             out_i.incoming_vars = []
-            for o in i.operands:
+            for x in xrange(i.incoming_count):
+                o = i.get_incoming_value(x)
+                label = i.get_incoming_block(x).name
                 # If this is instruction, i.e. tmpvar, then we came from it basic block
                 if isinstance(o, Instruction):
-                    out_i.incoming_vars.append((convert_arg(o), o.basic_block.name))
+                    out_i.incoming_vars.append((convert_arg(o), label))
                 # Alternatively, this can be incoming function argument from basic block %0
                 elif isinstance(o, Argument):
-                    out_i.incoming_vars.append((convert_arg(o), "0"))
+                    out_i.incoming_vars.append((convert_arg(o), label))
                 # Finally, this can be implicit initialization constant also from bbock %0
                 # Not that de-SSA-ization must convert this implicit initialization into
                 # explicit!
                 elif isinstance(o, ConstantInt):
-                    out_i.incoming_vars.append((convert_arg(o), "0"))
+                    out_i.incoming_vars.append((convert_arg(o), label))
                 else:
                     assert False, "Unsupported phi arg type"
         return out_i
