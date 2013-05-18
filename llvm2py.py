@@ -442,9 +442,11 @@ class PhiResolver(object):
             for b in f:
                 for i in b.instructions():
                     if i.opcode_name == "phi":
-                        for var, block in i.incoming_vars:
-                            block = f[block]
-                            mov = PInstruction(i.name, block[var].type, "mov", [PTmpVariable(var, block[var].type)])
+                        for var, label in i.incoming_vars:
+                            block = f[label]
+                            mov = PInstruction(i.name, i.type, "mov", [var])
+                            # Insert move before the last instruction of block,
+                            # which is got to be control transfer instruction.
                             block.insert(len(block) - 1, mov)
                         b.remove(i)
 
