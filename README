@@ -1,0 +1,18 @@
+The uptimate goal of this project is to make easy to develop a
+codegenaration backend in Python for arbitrary CPU, which takes LLVM IR
+as input.
+
+However, the code is currently very far away from that aim, and just
+contains some hacks towards:
+
+1. Graph-based register allocation.
+2. Parsing LLVM IR into Python-native objects, with output support,
+aiming towards 100% roundrip.
+3. Utilities to transform LLVM encoded as Python objects, for example,
+converting out of SSA form.
+
+None of these separate features are complete though, so it may be useful:
+
+1. As a starting base if you wanted to do something similar (I wish I
+didn't have start from scratch myself).
+2. As an example for llvmpy (http://llvmpy.org) usage.
