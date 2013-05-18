@@ -16,3 +16,6 @@ None of these separate features are complete though, so it may be useful:
 1. As a starting base if you wanted to do something similar (I wish I
 didn't have start from scratch myself).
 2. As an example for llvmpy (http://llvmpy.org) usage.
+
+
+See also: https://github.com/pfalcon/graph-llvm-ir
