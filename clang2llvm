@@ -1,0 +1,3 @@
+# Compile C into optimized LLVM IR asm
+#P=/home/pfalcon/projects-3rdparty/llvm/Debug+Asserts/bin/
+${P}clang -x c -emit-llvm -S -O2 $*
