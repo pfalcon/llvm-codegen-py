@@ -414,6 +414,7 @@ class IRRenderer(object):
             print v
         print
 
+        last_f = None
         for f in mod:
             if f.is_declaration:
                 print str(f)
@@ -422,6 +423,7 @@ class IRRenderer(object):
             else:
                 print str(f) + " {"
 
+            if last_f: print
             last_b = None
             for b in f:
                 if last_b: print
@@ -433,7 +435,7 @@ class IRRenderer(object):
                     print i
                 last_b = b
             print "}"
-            print
+            last_f = f
 
 
 if __name__ == "__main__":
