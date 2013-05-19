@@ -79,6 +79,8 @@ class PGlobalVariable(object):
             flags.append("unnamed_addr")
         if self.global_constant:
             flags.append("constant")
+        else:
+            flags.append("global")
         flags = " ".join(flags)
         s = "@%s = %s %s %s %s" % ( self.name, self.linkage, flags, self.type_str, self.initializer)
         if self.alignment:
