@@ -406,13 +406,13 @@ class IRRenderer(object):
     rendered by native LLVM tools."""
 
     @staticmethod
-    def render(out_mod):
+    def render(mod):
         print
-        for v in out_mod.global_variables:
+        for v in mod.global_variables:
             print v
         print
 
-        for f in out_mod:
+        for f in mod:
             if f.is_declaration:
                 print str(f)
                 print
