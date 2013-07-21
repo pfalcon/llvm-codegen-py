@@ -58,6 +58,15 @@ class Digraph(object):
         else:
             raise NotImplementedError
 
+    def iter_edges(self):
+        "Iterate over all edges in the graph."
+        if self.neigh_list is not None:
+            for node, neighs in self.neigh_list.iteritems():
+                for neigh in neighs:
+                    yield (node, neigh)
+        else:
+            raise NotImplementedError
+
     def remove(self, n):
         "Remove node and all its edges from the graph."
         if self.neigh_list is not None:
