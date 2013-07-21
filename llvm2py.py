@@ -184,7 +184,7 @@ def convert_arg(a):
     if isinstance(a, GlobalVariable):
         return PGlobalVariableRef(a.name, a.type)
     if isinstance(a, Function):
-        return PFunction(a, is_ref=True)
+        return PFunction.from_llvm(a, is_ref=True)
     if isinstance(a, ConstantInt):
         return PConstantInt(a.z_ext_value, a.type)
     if isinstance(a, ConstantDataArray):
@@ -208,9 +208,10 @@ class PInstruction(object):
             self.name, self.type, self.opcode_name, self.operands = args
 
     @classmethod
-    def from_llvm(cls, i):
+    def from_llvm(cls, parent_block, i):
 #        print i.name, i.type, i.opcode_name, i.operands
         out_i = cls()
+        out_i.parent = parent_block
         out_i.name = i.name
         out_i.type = i.type
         out_i.opcode_name = i.opcode_name
@@ -240,6 +241,34 @@ class PInstruction(object):
                 else:
                     assert False, "Unsupported phi arg type"
         return out_i
+
+    def defines(self):
+        if self.name:
+            return set([self.name])
+        else:
+            return set()
+
+    def uses(self):
+        uses = set()
+        for op in self.operands:
+            if isinstance(op, (PArgument, PTmpVariable)):
+                uses.add(op.name)
+        return uses
+
+    def succ(self):
+        if self.opcode_name == "ret":
+            return []
+        elif self.opcode_name == "br":
+            if len(self.operands) == 3:
+                labels = [self.operands[1].name, self.operands[2].name]
+            else:
+                labels = [self.operands[0].name]
+            func = self.parent.parent
+            return [func[l][0] for l in labels]
+        else:
+            b = self.parent
+            i = b.index(self)
+            return [b[i + 1]]
 
     def __str__(self):
         if self.name:
@@ -280,7 +309,8 @@ class PInstruction(object):
 
 
 class PBasicBlock(object):
-    def __init__(self, label):
+    def __init__(self, func, label):
+        self.parent = func
         self.name = label
         self.insts = []
 
@@ -298,20 +328,32 @@ class PBasicBlock(object):
     def remove(self, inst):
         self.insts.remove(inst)
 
+    def index(self, inst):
+        return self.insts.index(inst)
+
     def __iter__(self):
         return iter(self.insts)
 
     def __len__(self):
         return len(self.insts)
 
-    def __getitem__(self, var_name):
-        for i in self:
-            if i.name == var_name:
-                return i
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self.insts[key]
+        else:
+            for i in self:
+                if i.name == inst:
+                    return i
 
 
 class PFunction(object):
-    def __init__(self, f, is_ref=False):
+    def __init__(self, *args, **kwargs):
+        if args or kwargs:
+            self.name, self.type, self.args = args
+
+    @classmethod
+    def from_llvm(cls, f, is_ref=False):
+        self = cls()
         self.is_ref = is_ref
         self.name = f.name
         self.type = f.type
@@ -391,12 +433,12 @@ class IRConverter(object):
             out_mod.global_variables.append(PGlobalVariable(v))
 
         for f in mod.functions:
-            out_f = PFunction(f)
+            out_f = PFunction.from_llvm(f)
             for b in f.basic_blocks:
-                out_b = PBasicBlock(b.name)
+                out_b = PBasicBlock(out_f, b.name)
                 for i in b.instructions:
 #                    print "# %s" % i
-                    out_b.append(PInstruction.from_llvm(i))
+                    out_b.append(PInstruction.from_llvm(out_b, i))
                 out_f.append(out_b)
             out_mod.append(out_f)
 
