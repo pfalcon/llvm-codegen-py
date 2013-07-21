@@ -37,6 +37,16 @@ class Digraph(object):
         else:
             raise NotImplementedError
 
+    def succ(self, n):
+        return self.neighs(n)
+
+    def pred(self, n):
+        preds = []
+        for fr, to in self.iter_edges():
+            if to == n:
+                preds.append(fr)
+        return preds
+
     def degree(self, n):
         "Return node's degree, i.e. number of its neighbors."
         if self.neigh_list is not None:
