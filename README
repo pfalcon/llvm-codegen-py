@@ -1,4 +1,4 @@
-The uptimate goal of this project is to make easy to develop a
+The ultimate goal of this project is to make easy to develop a
 codegenaration backend in Python for arbitrary CPU, which takes LLVM IR
 as input.
 
