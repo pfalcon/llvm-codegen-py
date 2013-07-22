@@ -1,3 +1,4 @@
+
 @b = common global i32 0
 @c = common global i32 0
 @a = common global i32 0
