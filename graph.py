@@ -103,6 +103,10 @@ class Digraph(object):
         else:
             return str(self.neigh_list)
 
+    def print_with_attrs(self):
+        for n in self.iter_nodes():
+            print n, self.node_attrs.get(n), self.succ(n)
+
     def __eq__(self, other):
         if self.neigh_list is not None and other.neigh_list is not None:
             return self.neigh_list == other.neigh_list
