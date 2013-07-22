@@ -358,11 +358,11 @@ class PFunction(object):
     def __init__(self, *args, **kwargs):
         if args or kwargs:
             self.name, self.type, self.args = args
+            self.result_type = prim_type(str(self.type))
         self.is_ref = False
         self.bblocks = []
         self.is_declaration = False
         self.does_not_throw = True
-        self.result_type = prim_type(str(self.type))
 
     @classmethod
     def from_llvm(cls, f, is_ref=False):
@@ -380,6 +380,7 @@ class PFunction(object):
         self.vararg = f.type.pointee.vararg
         self.does_not_throw = f.does_not_throw
         self.result_type = prim_type(str(self.type))
+        return self
 
     def append(self, inst):
         self.bblocks.append(inst)
