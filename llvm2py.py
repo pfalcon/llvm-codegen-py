@@ -278,7 +278,7 @@ class PInstruction(object):
             if self.opcode_name == "load":
                 return INDENT + "%%%s = %s %s" % (self.name, self.opcode_name, render_arg(self.operands[0]))
             if self.opcode_name == "icmp":
-                return INDENT + "%%%s = %s %s %s %s" % (self.name, self.opcode_name, self.predicate, self.type, render_untyped_args(self.operands))
+                return INDENT + "%%%s = %s %s %s %s" % (self.name, self.opcode_name, self.predicate, self.operands[0].type, render_untyped_args(self.operands))
             if self.opcode_name == "phi":
                 args = ", ".join(["[ %s, %%%s ]" % x for x in self.incoming_vars])
                 return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, args)
