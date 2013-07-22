@@ -1,0 +1,72 @@
+0-7 alt reg bank (for e.g. ISRs)
+8-f main C reg bank
+
+10-STACK_START - global vars
+STACK_START-MEM_END stack
+
+on 8051 stack grows up, SP 1 byte, stack only in internal mem
+stack is at the end of memory
+
+r0 is generic pointer reg for internal mem (also, for first 256bytes of xmem)
+r1 is frame pointer, copied from SP (ni indir. addressing for SP)
+a is accumulator
+dptr is generic pointer reg for external mem MOVX A,@DPTR
+pc is used to point to code mem for constants MOVC A,@A+PC
+
+PUSH/POP operates on direct-addressable memory
+
+http://www.win.tue.nl/~aeb/comp/8051/set8051.html
+http://www.keil.com/support/man/docs/is51/is51_ov_cpu8051variants.htm
+http://www.8052.com/tutbregs.phtml
+
+
+clasic spill area:
+
+sub sp, 4
+mov.w [sp+2] <- r0
+
+8051 direct-address spill area:
+
+push spill
+push spill+1
+mov spill, r0
+mov spill+1, r1
+
+
+width split
+i16 a = b + c
+(MOV16 (TMP16 a) (ADD16 (TMP16 b) (TMP16 c))
+|
+v
+(MOV16 (TMP c) (COMBINE r0 r1))
+(MOV8 (TMP c.1) (LOWORD (TMP c)))
+(MOV8 (TMP c.2) (HIWORD (TMP c)))
+...
+(MOV16 (TMP16 a) (COMBINE (ADD8 (TMP8 b.1) (TMP8 c.1))
+                              (ADC8 (TMP8 b.1) (TMP8 c.2))))
+|
+v
+transform: (MOV16 (TMP16 x) (COMBINE ANY ANY)) => (SEQ (MOV8 (TMP8 x.1) NODE([2, 1])) (MOV8 (TMP x.2) NODE([2, 2]))) (MOV16 (TMP16 x) (COMBINE x.1 y.1))
+|
+v
+(MOV8 (TMP8 a.1) (ADD8 (TMP8 b.1) (TMP8 c.1)))
+(MOV8 (TMP8 a.2) (ADC8 (TMP8 b.2) (TMP8 c.2)))
+|
+v
+
+RISC 3-arg
+add t1 <- b.1, c.1
+mov a.1 <- t1
+
+RISC 2-arg
+mov t1 <- b.1
+add t1 <- c.1
+mov a.1 <- t1
+
+8051:
+mov a, b.1
+add a, c.1
+mov a.1, a
+mov a, b.2
+adc a, c.2
+mov a.2, a

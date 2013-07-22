@@ -1,0 +1,64 @@
+Definitions:
+
+t0, t1, ... tN - temporaries aka virtual registers
+r0, r1, ... rN - actual machine registers
+
+Q: What is frame and how it is used?
+A: Frame is location for spilled temporaries of a function. Note that frame in
+general case is NOT location of function arguments and local variables - both
+of them may be held in registers (the task of optimizing compiler is actually
+to hold them there). Frame is typically located on stack. This is because
+values held in there are inherently "callee-save" and must be preserved across
+function calls (including recursive). Advanced architectures access location
+in frame using index-with-offset addressing mode against frame pointer (or
+directly stack pointer).
+But if architecture lacks such addressing mode, repeatitive "manual" register
+offsetting may be expensive, and some other frame implementation may be needed.
+The most natural way would be PUSH/POP spilled values on stack, but that doesn't
+work for arbitrary execution graphs, only for expression trees (*1). If
+archirecture's emulation of index-with-offset addressing is more expensive than
+direct addressing and memory copy, it's possible to have frame at fixed location,
+and on function entry save it (subset used by current function) on stack and
+restore afterwards.
+
+*1 Verify this claim with a reference, though it seems both intuitive and
+logically explanable: in arbitrary graph, temporaries' live ranges may
+intersect, suppose at one point you need to spill t1, and PUSH it, the later
+you need to spill t2, and also push it, then at later point you need t1 again,
+but can't just POP it. On the other hand, for tree, live ranges are strictly
+contained - it's always possible to evaluate left child of current node, PUSH
+its value on stack, evaluate right, POP the other value, and do needed
+operation.
+
+
+Q: At which stage register allocation happens?
+A: Natural time to do register allocation is after target machine instruction
+selection. This is because previous to this, it's not even known which virtual
+registers are there (ref: MCI-J p.190). For example, consider instruction sequences to access
+local variable in a frame:
+
+If a machine supports index with offset addressing:
+
+mov t0 <- [fp+8]
+
+If a machine doesn't support index with offset addressing (and uses
+2-address commands):
+
+mov t1 <- fp
+add t1 <- 8
+mov t0 <- [t1]
+
+In the first case, there's only one temporary to assign to a real register,
+in the 2nd - two.
+
+
+Q: But how are spills handled if registers are assigned based on target asm representation?
+A: For a fully formal way to handle it, spill may be generated as abstract asm tree node,
+then translated into target asm, then inserted at right position into existing target
+asm sequence. This is fully correct, as spill sequence should not have any semantic
+context dependence on existing target asm operations (instruction scheduling and other
+target-specific optimizations are intended to happen after regalloc, when target asm will
+be complete). It's also may be possible to "optimize" this and have special spill instruction
+pattern for target machine (which would duplicate one of generic translation pattermns of
+course).
+

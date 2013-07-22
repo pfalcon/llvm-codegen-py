@@ -1,0 +1,60 @@
+Splitting wide values for narrower registers.
+
+(Example: i32 to i8 regs.)
+
+%1 = add i32 %b, %a
+
+|
+v
+
+%b0, %b1, %b2, %b3 = split %b
+%a0, %a1, %a2, %a3 = split %a
+%10, %c1 = add i8 %b0, %a0
+%11, %c2 = adc i8 %b1, %a1, %c1
+%12, %c3 = adc i8 %b2, %a2, %c2
+%13, %c4 = adc i8 %b3, %a3, %c3
+%1 = combine %10, %11, %12, %13
+
+----------
+define i32 @func() nounwind {
+  %1 = load i32* @b, align 4, !tbaa !0
+  %2 = load i32* @c, align 4, !tbaa !0
+  %3 = add nsw i32 %2, %1
+  store i32 %3, i32* @a, align 4, !tbaa !0
+  ret i32 undef
+}
+
+|
+v
+
+%10 = load i8* @b
+%11 = load i8* @b+1
+%12 = load i8* @b+2
+%13 = load i8* @b+3
+%20 = load i8* @c
+%21 = load i8* @c+1
+%22 = load i8* @c+2
+%23 = load i8* @c+3
+%30,%c0 = add i8 %20, %10
+%31,%c1 = adc i8 %21, %11, %c0
+%32,%c2 = adc i8 %22, %12, %c1
+%33,%c3 = adc i8 %23, %13, %c2
+store i8 %30, i8* @a
+store i8 %31, i8* @a+1
+store i8 %32, i8* @a+2
+store i8 %33, i8* @a+3
+
+|
+v
+
+%10 = load i8* @b
+%20 = load i8* @c
+%30,%c0 = add i8 %20, %10
+store i8 %30, i8* @a
+
+%11 = load i8* @b+1
+%21 = load i8* @c+1
+%31,%c1 = adc i8 %21, %11, %c0
+store i8 %31, i8* @a+1
+
+...
