@@ -462,33 +462,34 @@ class IRRenderer(object):
     rendered by native LLVM tools."""
 
     @staticmethod
-    def render(mod):
-        print
-        for v in mod.global_variables:
-            print v
-        print
+    def render(mod, out=sys.stdout):
+        if len(mod.global_variables):
+            print >>out
+            for v in mod.global_variables:
+                print >>out, v
+            print >>out
 
         last_f = None
         for f in mod:
             if f.is_declaration:
-                print str(f)
-                print
+                print >>out, str(f)
+                print >>out
                 continue
             else:
-                print str(f) + " {"
+                print >>out, str(f) + " {"
 
             if last_f: print
             last_b = None
             for b in f:
-                if last_b: print
+                if last_b: print >>out
                 if b.name[0].isdigit():
-                    print ";%s:" % b.name
+                    print >>out, ";%s:" % b.name
                 else:
-                    print "%s:" % b.name
+                    print >>out, "%s:" % b.name
                 for i in b:
-                    print i
+                    print >>out, i
                 last_b = b
-            print "}"
+            print >>out, "}"
             last_f = f
 
 
