@@ -206,6 +206,9 @@ class PInstruction(object):
     def __init__(self, *args, **kwargs):
         if args or kwargs:
             self.name, self.type, self.opcode_name, self.operands = args
+        else:
+            self.type = "?type"
+            self.operands = []
 
     @classmethod
     def from_llvm(cls, parent_block, i):
@@ -293,11 +296,16 @@ class PInstruction(object):
                 return INDENT + "%%%s = %s %s" % (self.name, op, render_typed_args( self.operands))
             return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, render_untyped_args(self.operands))
         else:
+            if len(self.operands) == 0:
+                # Not completely initialized inst, still render for parser, etc. debugging
+                return INDENT + "%s ???" % self.opcode_name
             if self.opcode_name == "ret":
                 return INDENT + "%s %s %s" % (self.opcode_name, self.operands[0].type, self.operands[0])
             if self.opcode_name == "store":
                 return INDENT + "%s %s, %s" % (self.opcode_name, render_arg(self.operands[0]), render_arg(self.operands[1]))
             if self.opcode_name == "br":
+                if len(self.operands) == 0:
+                    return INDENT + "br ???"
                 args_no = [0]
                 if len(self.operands) == 3:
                     args_no = [0, 2, 1]
@@ -315,7 +323,7 @@ class PBasicBlock(object):
         self.insts = []
 
     def instructions(self):
-        """Return copy of block's instruction list, for you can iterate
+        """Return copy of block's instruction list, so you can iterate
         over it while modifying block."""
         return self.insts[:]
 
@@ -350,6 +358,11 @@ class PFunction(object):
     def __init__(self, *args, **kwargs):
         if args or kwargs:
             self.name, self.type, self.args = args
+        self.is_ref = False
+        self.bblocks = []
+        self.is_declaration = False
+        self.does_not_throw = True
+        self.result_type = prim_type(str(self.type))
 
     @classmethod
     def from_llvm(cls, f, is_ref=False):
@@ -366,7 +379,6 @@ class PFunction(object):
         self.is_declaration = f.is_declaration
         self.vararg = f.type.pointee.vararg
         self.does_not_throw = f.does_not_throw
-        self.bblocks = []
         self.result_type = prim_type(str(self.type))
 
     def append(self, inst):
