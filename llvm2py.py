@@ -59,6 +59,12 @@ class PModule(object):
     def __iter__(self):
         return iter(self.functions)
 
+    def __getitem__(self, key):
+        for f in self:
+            if f.name == key:
+                return f
+        return None
+
 
 class PGlobalVariable(object):
     def __init__(self, v):
