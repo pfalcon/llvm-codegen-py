@@ -8,14 +8,13 @@ from llvm2py import *
 
 class Liveness(object):
 
-    @classmethod
-    def run(cls, func):
-        live_in = {}
-        live_out = {}
+    def __init__(self, func):
+        self.live_in = {}
+        self.live_out = {}
         for b in func:
             for i in b.instructions():
-                live_in[i] = set()
-                live_out[i] = set()
+                self.live_in[i] = set()
+                self.live_out[i] = set()
 
         changed = True
         iter = 1
@@ -26,18 +25,20 @@ class Liveness(object):
             for b in func:
                 for i in b.instructions():
                     print "Analyzing", i, "| def:", i.defines(), "| use:", i.uses()
-                    new_in = copy(live_in[i])
-                    new_out = copy(live_out[i])
+                    new_in = copy(self.live_in[i])
+                    new_out = copy(self.live_out[i])
                     new_in = i.uses() | (new_out - i.defines())
                     new_out = set()
                     print "Succ:", i.succ()
                     for s in i.succ():
-                        new_out |= live_in[s]
-                    if new_in != live_in[i] or new_out != live_out[i]:
+                        new_out |= self.live_in[s]
+                    if new_in != self.live_in[i] or new_out != self.live_out[i]:
                         changed = True
-                        live_in[i] = new_in
-                        live_out[i] = new_out
-        return live_out
+                        self.live_in[i] = new_in
+                        self.live_out[i] = new_out
+
+    def live_out_map(self):
+        return self.live_out
 
 
 if __name__ == "__main__":
@@ -45,6 +46,6 @@ if __name__ == "__main__":
         mod = Module.from_assembly(asm)
     out_mod = IRConverter.convert(mod)
     #print "============="
-    Liveness.run(out_mod)
+    Liveness(out_mod[0])
 
 #    IRRenderer.render(out_mod)

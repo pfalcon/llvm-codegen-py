@@ -20,7 +20,8 @@ def test_func_if():
     p = IRParser(open(datadir + "appel-2ed-p204.ll"))
     mod = p.parse()
     f = mod["func"]
-    live_ranges = Liveness.run(f)
+    l = Liveness(f)
+    live_ranges = l.live_out_map()
     print live_ranges
     for i, inst in enumerate(f.iter_insts()):
         print i, inst
