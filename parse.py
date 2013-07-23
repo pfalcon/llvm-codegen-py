@@ -39,6 +39,7 @@ class IRParser(object):
             label = self.next_tmp()
         self.block = PBasicBlock(self.func, label)
         self.func.append(self.block)
+        self.block.parent = self.func
 
     def parse(self):
         for l in self.f:
@@ -56,6 +57,7 @@ class IRParser(object):
                 mods = m.group("mods").strip().split()
                 self.func.does_not_throw = "nounwind" in mods
                 self.mod.append(self.func)
+                self.func.parent = self.mod
                 continue
 
             if self.func:
@@ -96,6 +98,7 @@ class IRParser(object):
                 inst.operands = args
 #                print "out:", str(inst).strip()
                 self.block.append(inst)
+                inst.parent = self.block
 
         return self.mod
 
