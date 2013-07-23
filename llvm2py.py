@@ -276,6 +276,10 @@ class PInstruction(object):
                 labels = [self.operands[0].name]
             func = self.parent.parent
             return [func[l][0] for l in labels]
+        elif self.opcode_name == "bricmp":
+            labels = [self.operands[2].name, self.operands[3].name]
+            func = self.parent.parent
+            return [func[l][0] for l in labels]
         else:
             b = self.parent
             i = b.index(self)
@@ -324,6 +328,10 @@ class PInstruction(object):
                 if len(self.operands) == 3:
                     args_no = [0, 2, 1]
                 return INDENT + "%s %s" % (self.opcode_name, ", ".join([render_arg(self.operands[x]) for x in args_no]))
+            if self.opcode_name == "bricmp":
+                args_no = [0, 1, 3, 2]
+                return INDENT + "%s %s %s" % (self.opcode_name, self.predicate, ", ".join([render_arg(self.operands[x]) for x in args_no]))
+
             return INDENT + "%s %s" % (self.opcode_name, ", ".join([render_arg(x) for x in self.operands]))
 
     def __repr__(self):

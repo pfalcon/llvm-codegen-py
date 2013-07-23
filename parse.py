@@ -86,7 +86,7 @@ class IRParser(object):
                 inst = PInstruction()
                 inst.name = lhs
                 inst.opcode_name = opcode
-                if opcode == "icmp":
+                if opcode in ("icmp", "bricmp"):
                     pred, rhs = rhs.split(None, 1)
                     inst.predicate = pred
                 type, rhs = rhs.split(None, 1)
@@ -95,6 +95,8 @@ class IRParser(object):
                 args = [self.convert_arg(x, type) for x in args]
                 if opcode == "br" and len(args) == 3:
                     args = [args[0], args[2], args[1]]
+                if opcode == "bricmp":
+                    args = [args[0], args[1], args[3], args[2]]
                 inst.operands = args
 #                print "out:", str(inst).strip()
                 self.block.append(inst)
