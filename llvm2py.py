@@ -277,7 +277,13 @@ class PInstruction(object):
         else:
             b = self.parent
             i = b.index(self)
-            return [b[i + 1]]
+            if i < len(b) - 1:
+                return [b[i + 1]]
+            else:
+                # Return first instruction of next block
+                f = b.parent
+                ib = f.index(b)
+                return [f[ib + 1][0]]
 
     def __str__(self):
         if self.name:
