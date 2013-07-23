@@ -403,6 +403,13 @@ class PFunction(object):
     def __iter__(self):
         return iter(self.bblocks)
 
+    def iter_insts(self):
+        """Iterate over instructions of a function, ignoring basic
+        block boundaries."""
+        for b in self:
+            for i in b:
+                yield i
+
     def __getitem__(self, key):
         if isinstance(key, int):
             return self.bblocks[key]
