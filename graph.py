@@ -17,10 +17,10 @@ class DigraphEdgeList(IGraph):
     directed = True
 
     def __init__(self):
-        self.edge_list = []
+        self.edge_list = set()
 
     def add_edge(self, from_node, to_node):
-        self.edge_list.append((from_node, to_node))
+        self.edge_list.add((from_node, to_node))
 
     def iter_edges(self):
         return iter(self.edge_list)
