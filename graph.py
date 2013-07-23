@@ -1,3 +1,36 @@
+class IGraph(object):
+
+    # directed = None
+
+    def add_edge(self, from_node, to_node):
+        """Add edge between 2 nodes. If any of the nodes does not exist,
+        it will be created."""
+        pass
+
+    def iter_edges(self):
+        "Iterate over all edges in the graph."
+        pass
+
+
+class DigraphEdgeList(IGraph):
+
+    directed = True
+
+    def __init__(self):
+        self.edge_list = []
+
+    def add_edge(self, from_node, to_node):
+        self.edge_list.append((from_node, to_node))
+
+    def iter_edges(self):
+        return iter(self.edge_list)
+
+
+class UngraphEdgeList(DigraphEdgeList):
+
+    directed = False
+
+
 class Digraph(object):
     """Directed graph class, can be created from 2 representations:
     Edge list:
