@@ -257,6 +257,8 @@ class PInstruction(object):
         else:
             return set()
 
+    defs = defines
+
     def uses(self):
         uses = set()
         for op in self.operands:
