@@ -397,12 +397,18 @@ class PFunction(object):
     def append(self, inst):
         self.bblocks.append(inst)
 
+    def index(self, block):
+        return self.bblocks.index(block)
+
     def __iter__(self):
         return iter(self.bblocks)
 
-    def __getitem__(self, bblock_label):
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self.bblocks[key]
+
         for b in self:
-            if b.name == bblock_label:
+            if b.name == key:
                 return b
 
     def __str__(self):
