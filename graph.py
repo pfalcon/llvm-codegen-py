@@ -30,6 +30,13 @@ class UngraphEdgeList(DigraphEdgeList):
 
     directed = False
 
+    def add_edge(self, from_node, to_node):
+        if from_node > to_node:
+            edge = (from_node, to_node)
+        else:
+            edge = (to_node, from_node)
+        DigraphEdgeList.add_edge(self, *edge)
+
 
 class Digraph(object):
     """Directed graph class, can be created from 2 representations:
