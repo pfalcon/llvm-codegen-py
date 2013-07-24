@@ -1,5 +1,11 @@
 import os
 
+try:
+    import llvm.core
+except ImportError:
+    from nose.exc import SkipTest
+    raise SkipTest("llvmpy module is not available")
+
 from llvm2py import *
 
 
