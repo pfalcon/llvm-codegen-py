@@ -2,14 +2,8 @@
 import sys
 import re
 
-from llvm.core import *
-import llvm
-
 
 INDENT = "  "
-
-PRED_MAP = {ICMP_EQ: "eq"}
-LINKAGE_MAP = {LINKAGE_PRIVATE: "private", LINKAGE_COMMON: "common"}
 
 def prim_type(type):
     return type.split(" ", 1)[0]
@@ -168,43 +162,15 @@ class PLabelRef(object):
 class PConstantExpr(object):
 
     def __init__(self):
-        pass
-
-    @classmethod
-    def from_llvm(cls, expr):
-        e = cls()
-        e.type = expr.type
-        e.opcode_name = expr.opcode_name
-        e.operands = [convert_arg(x) for x in expr.operands]
-        return e
+        self.type = None
+        self.opcode_name = None
+        self.operands = []
 
     def __str__(self):
         return "%s(%s)" % (self.opcode_name, render_typed_args(self.operands))
 
     def __repr__(self):
         return self.__str__()
-
-def convert_arg(a):
-    if isinstance(a, Argument):
-        return PArgument(a.name, a.type)
-    if isinstance(a, GlobalVariable):
-        return PGlobalVariableRef(a.name, a.type)
-    if isinstance(a, Function):
-        return PFunction.from_llvm(a, is_ref=True)
-    if isinstance(a, ConstantInt):
-        return PConstantInt(a.z_ext_value, a.type)
-    if isinstance(a, ConstantDataArray):
-        return PConstantDataArray(a)
-    if isinstance(a, ConstantExpr):
-        return PConstantExpr.from_llvm(a)
-    if isinstance(a, BasicBlock):
-        return PLabelRef(a.name)
-    if isinstance(a, Instruction):
-        # Result of instruction is temporary
-        return PTmpVariable(a.name, a.type)
-
-    raise NotImplementedError(a, type(a))
-
 
 
 class PInstruction(object):
@@ -215,41 +181,6 @@ class PInstruction(object):
         else:
             self.type = "?type"
             self.operands = []
-
-    @classmethod
-    def from_llvm(cls, parent_block, i):
-#        print i.name, i.type, i.opcode_name, i.operands
-        out_i = cls()
-        out_i.parent = parent_block
-        out_i.name = i.name
-        out_i.type = i.type
-        out_i.opcode_name = i.opcode_name
-        out_i.predicate = None
-        if hasattr(i, "predicate"):
-            out_i.predicate_code = i.predicate
-            out_i.predicate = PRED_MAP[i.predicate]
-        out_i.operands = [convert_arg(x) for x in i.operands]
-        if i.opcode_name == "getelementptr":
-            out_i.inbounds = "inbounds" in str(i)
-        elif i.opcode_name == "phi":
-            out_i.incoming_vars = []
-            for x in xrange(i.incoming_count):
-                o = i.get_incoming_value(x)
-                label = i.get_incoming_block(x).name
-                # If this is instruction, i.e. tmpvar, then we came from it basic block
-                if isinstance(o, Instruction):
-                    out_i.incoming_vars.append((convert_arg(o), label))
-                # Alternatively, this can be incoming function argument from basic block %0
-                elif isinstance(o, Argument):
-                    out_i.incoming_vars.append((convert_arg(o), label))
-                # Finally, this can be implicit initialization constant also from bbock %0
-                # Not that de-SSA-ization must convert this implicit initialization into
-                # explicit!
-                elif isinstance(o, ConstantInt):
-                    out_i.incoming_vars.append((convert_arg(o), label))
-                else:
-                    assert False, "Unsupported phi arg type"
-        return out_i
 
     def defines(self):
         if self.name:
@@ -385,24 +316,7 @@ class PFunction(object):
         self.bblocks = []
         self.is_declaration = False
         self.does_not_throw = True
-
-    @classmethod
-    def from_llvm(cls, f, is_ref=False):
-        self = cls()
-        self.is_ref = is_ref
-        self.name = f.name
-        self.type = f.type
-        self.args = []
-        for x in f.args:
-            attrs = x.attributes
-            x = convert_arg(x)
-            x.attributes = attrs
-            self.args.append(x)
-        self.is_declaration = f.is_declaration
-        self.vararg = f.type.pointee.vararg
-        self.does_not_throw = f.does_not_throw
-        self.result_type = prim_type(str(self.type))
-        return self
+        self.vararg = False
 
     def append(self, inst):
         self.bblocks.append(inst)
@@ -442,55 +356,6 @@ class PFunction(object):
         else:
             return "define %s @%s(%s)%s" % (self.result_type, self.name, render_typed_args(self.args), flags)
 
-
-
-class IRConverter(object):
-    """Convert LLVM IR module to Python representation."""
-
-    @classmethod
-    def number_tmps(cls, mod):
-        tmp_i = 0
-        for f in mod.functions:
-#            print `f`
-            f_type = str(f.type)[:-1]
-            f_type = f_type.split(" ", 1)
-            f_type = f_type[0] + " function " + f_type[1]
-            for b in f.basic_blocks:
-#                print "BB name:", b.name
-                if not b.name:
-                    b.name = "%d" % tmp_i
-                    tmp_i += 1
-                for i in b.instructions:
-#                    print i
-                    if not i.name and i.type != Type.void():
-                        i.name = "%d" % tmp_i
-                        tmp_i += 1
-
-    @classmethod
-    def convert(cls, mod):
-        cls.number_tmps(mod)
-
-        out_mod = PModule()
-
-        for v in mod.global_variables:
-#            print dir(v)
-#            for a in dir(v):
-#                print a, getattr(v, a)
-#            print v.visibility, v.linkage, "=%s=" % v.section
-#            print v.initializer
-            out_mod.global_variables.append(PGlobalVariable(v))
-
-        for f in mod.functions:
-            out_f = PFunction.from_llvm(f)
-            for b in f.basic_blocks:
-                out_b = PBasicBlock(out_f, b.name)
-                for i in b.instructions:
-#                    print "# %s" % i
-                    out_b.append(PInstruction.from_llvm(out_b, i))
-                out_f.append(out_b)
-            out_mod.append(out_f)
-
-        return out_mod
 
 
 class IRRenderer(object):
