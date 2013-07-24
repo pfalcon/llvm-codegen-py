@@ -23,6 +23,8 @@ class IRParser(object):
             pass
         if arg[0] == "%":
             return PTmpVariable(arg[1:], type)
+        if arg[0] == "@":
+            return PGlobalVariableRef(arg[1:], type)
         if arg.startswith("label "):
             label = arg.split(None, 1)[1]
             assert label[0] == "%"
@@ -47,20 +49,43 @@ class IRParser(object):
             if not l:
                 continue
 
-            if l.startswith("define "):
-                m = re.match(r"define (?P<type>.+?) @(?P<name>.+?)\((?P<args>.+?)\)(?P<mods>.*?) \{", l)
-                assert m, "Syntax error in func definition:" + l
-#                print "!", m.groupdict()
-                args = [x.strip() for x in m.group("args").split(",")]
-                args = [self.convert_arg(x) for x in args]
-                self.func = PFunction(m.group("name"), m.group("type"), args)
-                mods = m.group("mods").strip().split()
-                self.func.does_not_throw = "nounwind" in mods
-                self.mod.append(self.func)
-                self.func.parent = self.mod
-                continue
+            if not self.func:
+                # Global context
+                if l.startswith("@"):
+                    lhs, rhs = [x.strip() for x in l.split("=", 1)]
+                    var = PGlobalVariable()
+                    var.name = lhs[1:]
+                    # @g = common global i32 0
+                    while True:
+                        lhs, new_rhs = rhs.split(None, 1)
+                        if lhs in ("private", "linkonce", "weak", "common"):
+                            var.linkage = lhs
+                        elif lhs == "global":
+                            pass
+                        else:
+                            break
+                        rhs = new_rhs
+                    val = self.convert_arg(rhs)
+                    # FIXME: var.type apparently should be pointer to
+                    var.type_str = var.type = val.type
+                    var.initializer = val
+                    self.mod.global_variables.append(var)
 
-            if self.func:
+                if l.startswith("define "):
+                    m = re.match(r"define (?P<type>.+?) @(?P<name>.+?)\((?P<args>.+?)\)(?P<mods>.*?) \{", l)
+                    assert m, "Syntax error in func definition:" + l
+#                    print "!", m.groupdict()
+                    args = [x.strip() for x in m.group("args").split(",")]
+                    args = [self.convert_arg(x) for x in args]
+                    self.func = PFunction(m.group("name"), m.group("type"), args)
+                    mods = m.group("mods").strip().split()
+                    self.func.does_not_throw = "nounwind" in mods
+                    self.mod.append(self.func)
+                    self.func.parent = self.mod
+                    continue
+
+            else:
+                # Function context
                 if l == "}":
                     self.block = None
                     self.func = None
