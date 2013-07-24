@@ -30,29 +30,29 @@ def test_color_3_nodes():
     assert_coloring(g, 5, [('a', 2), ('b', 1), ('c', 0)])
 
 def test_color_4_nodes_1():
-    """
-    a-b
-    | |
-    d-c
-    """
+    #"""
+    #a-b
+    #| |
+    #d-c
+    #"""
     g = Ungraph.from_neigh_list({
         "a": ["b", "d"], "b": ["a", "c"], "c": ["b", "d"], "d": ["a", "c"]
     })
     assert_coloring(g, 5, [('a', 1), ('b', 0), ('c', 1), ('d', 0)])
 
 def test_color_4_nodes_2():
-    """
-    a-b
-    |\|
-    d-c
-    """
+    #"""
+    #a-b
+    #|\|
+    #d-c
+    #"""
     g = Ungraph.from_neigh_list({
         "a": ["b", "c", "d"], "b": ["a", "c"], "c": ["a", "b", "d"], "d": ["a", "c"]
     })
     assert_coloring(g, 5, [('a', 2), ('b', 0), ('c', 1), ('d', 0)])
 
-def test_MCI_graph():
-    "Graph from MCIiJ p.221"
+def test_appel_2ed_p221():
+    # "Graph from MCIiJ p.221"
     NEIGHS = {
     "j": ["f", "e", "k", "d", "h", "g"],
     "f": ["j", "e", "m"],
