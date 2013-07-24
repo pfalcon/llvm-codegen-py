@@ -3,6 +3,8 @@ import sys
 import re
 
 
+ATTR_NO_CAPTURE = "ATTR_NO_CAPTURE"
+
 INDENT = "  "
 
 def prim_type(type):
