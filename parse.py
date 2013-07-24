@@ -27,7 +27,7 @@ class IRParser(object):
             label = arg.split(None, 1)[1]
             assert label[0] == "%"
             return PLabelRef(label[1:])
-        1/0
+        assert False, arg
 
     def next_tmp(self):
         t = str(self.tmp_count)
@@ -89,7 +89,18 @@ class IRParser(object):
                 if opcode in ("icmp", "bricmp"):
                     pred, rhs = rhs.split(None, 1)
                     inst.predicate = pred
-                type, rhs = rhs.split(None, 1)
+                elif opcode == "load":
+                    h, t = rhs.split(None, 1)
+                    if h == "getelementptr":
+                        inst.offseted = True
+                        rhs = t
+                homotype = True
+                if opcode in set(["load", "store"]):
+                    homotype = False
+                if homotype:
+                    type, rhs = rhs.split(None, 1)
+                else:
+                    type = None
                 inst.type = type
                 args = [x.strip() for x in rhs.split(",")]
                 args = [self.convert_arg(x, type) for x in args]
