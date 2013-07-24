@@ -4,6 +4,7 @@ import re
 
 
 ATTR_NO_CAPTURE = "ATTR_NO_CAPTURE"
+LINKAGE_COMMON = "common"
 
 INDENT = "  "
 
@@ -63,17 +64,17 @@ class PModule(object):
 
 
 class PGlobalVariable(object):
-    def __init__(self, v):
-        self.name = v.name
-        self.pointer_type = v.type
-        self.type = v.type
-        self.type_str = str(v.type)[:-1]
-        self.is_declaration = v.is_declaration
-        self.initializer = convert_arg(v.initializer)
-        self.linkage = LINKAGE_MAP[v.linkage]
-        self.alignment = v.alignment
-        self.global_constant = v.global_constant
-        self.unnamed_addr = "unnamed_addr" in str(v)
+    def __init__(self):
+        self.name = None
+        self.pointer_type = None
+        self.type = None
+        self.type_str = None
+        self.is_declaration = False
+        self.initializer = None
+        self.linkage = LINKAGE_COMMON #LINKAGE_MAP[v.linkage]
+        self.alignment = None
+        self.global_constant = False
+        self.unnamed_addr = False #"unnamed_addr" in str(v)
 
     def __str__(self):
         flags = []

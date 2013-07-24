@@ -67,7 +67,9 @@ class PModule(object):
 
 
 class PGlobalVariable(object):
-    def __init__(self, v):
+    @classmethod
+    def from_llvm(cls, v):
+        self = cls()
         self.name = v.name
         self.pointer_type = v.type
         self.type = v.type
