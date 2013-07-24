@@ -3,7 +3,7 @@ import sys
 import re
 from copy import copy
 
-from llvm2py import *
+from pllvm import *
 
 
 class Liveness(object):

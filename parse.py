@@ -1,6 +1,6 @@
 import sys
 
-from llvm2py import *
+from pllvm import *
 
 class IRParser(object):
 
