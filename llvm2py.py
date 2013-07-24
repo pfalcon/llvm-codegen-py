@@ -80,6 +80,7 @@ class PGlobalVariable(object):
         self.alignment = v.alignment
         self.global_constant = v.global_constant
         self.unnamed_addr = "unnamed_addr" in str(v)
+        return self
 
     def __str__(self):
         flags = []
@@ -480,7 +481,7 @@ class IRConverter(object):
 #                print a, getattr(v, a)
 #            print v.visibility, v.linkage, "=%s=" % v.section
 #            print v.initializer
-            out_mod.global_variables.append(PGlobalVariable(v))
+            out_mod.global_variables.append(PGlobalVariable.from_llvm(v))
 
         for f in mod.functions:
             out_f = PFunction.from_llvm(f)
