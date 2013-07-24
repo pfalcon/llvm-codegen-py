@@ -227,7 +227,11 @@ class PInstruction(object):
     def __str__(self):
         if self.name:
             if self.opcode_name == "load":
-                return INDENT + "%%%s = %s %s" % (self.name, self.opcode_name, render_arg(self.operands[0]))
+                if len(self.operands) == 1:
+                    return INDENT + "%%%s = %s %s" % (self.name, self.opcode_name, render_arg(self.operands[0]))
+                else:
+                    # Extended MEM[p + N] form
+                    return INDENT + "%%%s = %s getelementptr %s" % (self.name, self.opcode_name, render_typed_args(self.operands))
             if self.opcode_name == "icmp":
                 return INDENT + "%%%s = %s %s %s %s" % (self.name, self.opcode_name, self.predicate, self.operands[0].type, render_untyped_args(self.operands))
             if self.opcode_name == "phi":
