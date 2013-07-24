@@ -19,11 +19,21 @@ class DigraphEdgeList(IGraph):
     def __init__(self):
         self.edge_list = set()
 
+    @classmethod
+    def from_edge_list(cls, edge_list):
+        self = cls()
+        for from_node, to_node in edge_list:
+            self.add_edge(from_node, to_node)
+        return self
+
     def add_edge(self, from_node, to_node):
         self.edge_list.add((from_node, to_node))
 
     def iter_edges(self):
         return iter(self.edge_list)
+
+    def __eq__(self, other):
+        return self.edge_list == other.edge_list
 
 
 class UngraphEdgeList(DigraphEdgeList):
