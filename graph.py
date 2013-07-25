@@ -41,7 +41,7 @@ class UngraphEdgeList(DigraphEdgeList):
     directed = False
 
     def add_edge(self, from_node, to_node):
-        if from_node > to_node:
+        if from_node < to_node:
             edge = (from_node, to_node)
         else:
             edge = (to_node, from_node)
