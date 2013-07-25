@@ -19,12 +19,19 @@ def dot(graph, out=sys.stdout, directed=None):
     print >>out, "}"
 
 
+def unquote(s):
+    if s[0] == '"' and s[-1] == '"':
+        return s[1:-1]
+    return s
+
+
 def parse(f, graph):
     l = f.readline()
     assert l.startswith("graph") or l.startswith("digraph")
     for l in f:
         if l.strip() == "}":
             break
-        fields = re.split(r"-(-|>)", l, 1)
+        fields = re.split(r"-[->]", l, 1)
         fields = [x.strip() for x in fields]
-        graph.add_edge(fields[0], fields[1])
+        graph.add_edge(unquote(fields[0]), unquote(fields[1]))
+    return graph
