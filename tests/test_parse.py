@@ -8,7 +8,7 @@ from parse import *
 
 datadir = os.path.dirname(__file__) + "/data/"
 
-def test_func_if():
+def test_appel_2ed_p204():
     f = "appel-2ed-p204.ll"
     p = IRParser(open(datadir + f))
     mod = p.parse()
