@@ -13,8 +13,16 @@ class IRParser(object):
 
     @staticmethod
     def convert_arg(arg, type=None):
+        if arg[0] == "!":
+            # Tags, so far just return as string
+            return arg
+
         if type is None:
             type, arg = arg.split(None, 1)
+
+            if " " in arg:
+                mod, arg = arg.split(None, 1)
+                assert mod == "nocapture"
 
         try:
             v = int(arg)
@@ -103,7 +111,7 @@ class IRParser(object):
                 comps = [x.strip() for x in l.split("=", 1)]
                 if len(comps) == 2:
                     lhs, rhs = comps
-                    assert lhs[0] == "%"
+                    assert lhs[0] == "%", l
                     lhs = lhs[1:]
                 else:
                     lhs = None
