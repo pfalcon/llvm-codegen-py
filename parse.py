@@ -45,6 +45,7 @@ class IRParser(object):
 
     def parse(self):
         for l in self.f:
+            l = re.sub(r";.*", "", l)
             l = l.rstrip()
             if not l:
                 continue
