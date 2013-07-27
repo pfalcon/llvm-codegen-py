@@ -81,7 +81,9 @@ class IRParser(object):
 
             if not self.func:
                 # Global context
-                if l.startswith("@"):
+                if l.startswith("target "):
+                    self.mod.target_info.append(l)
+                elif l.startswith("@"):
                     lhs, rhs = [x.strip() for x in l.split("=", 1)]
                     var = PGlobalVariable()
                     var.name = lhs[1:]
@@ -101,7 +103,7 @@ class IRParser(object):
                     var.initializer = val
                     self.mod.global_variables.append(var)
 
-                if l.startswith("define "):
+                elif l.startswith("define "):
                     m = re.match(r"define (?P<type>.+?) @(?P<name>.+?)\((?P<args>.+?)\)(?P<mods>.*?) \{", l)
                     assert m, "Syntax error in func definition:" + l
 #                    print "!", m.groupdict()

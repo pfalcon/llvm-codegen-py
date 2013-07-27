@@ -51,6 +51,7 @@ class PModule(object):
     def __init__(self):
         self.functions = []
         self.global_variables = []
+        self.target_info = []
 
     def append(self, inst):
         self.functions.append(inst)
@@ -385,6 +386,11 @@ class IRRenderer(object):
 
     @staticmethod
     def render(mod, out=sys.stdout):
+        if mod.target_info:
+            for t in mod.target_info:
+                print >>out, t
+            print >>out
+
         if len(mod.global_variables):
             print >>out
             for v in mod.global_variables:
