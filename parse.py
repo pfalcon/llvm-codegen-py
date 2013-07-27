@@ -77,6 +77,8 @@ class IRParser(object):
             l = m.group(1)
             comment = m.group(2)
             if not l:
+                if comment and comment.startswith("; ModuleID = "):
+                    self.mod.module_id = comment
                 continue
 
             if not self.func:

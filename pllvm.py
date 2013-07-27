@@ -53,6 +53,7 @@ class PModule(object):
         self.global_variables = []
         self.target_info = []
         self.metadata = []
+        self.module_id = None
 
     def append(self, inst):
         self.functions.append(inst)
@@ -387,6 +388,8 @@ class IRRenderer(object):
 
     @staticmethod
     def render(mod, out=sys.stdout, implicit_labels=True):
+        if mod.module_id:
+                print >>out, mod.module_id
         if mod.target_info:
             for t in mod.target_info:
                 print >>out, t
