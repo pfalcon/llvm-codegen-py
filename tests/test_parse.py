@@ -35,7 +35,7 @@ def test_strlen():
     p = IRParser(open(datadir + f))
     mod = p.parse()
     out = StringIO()
-    IRRenderer.render(mod, out)
+    IRRenderer.render(mod, out, implicit_labels=False)
     org = open(datadir + f).readlines()
     new = out.getvalue().splitlines(True)
     diff = "".join(difflib.unified_diff(org, new))

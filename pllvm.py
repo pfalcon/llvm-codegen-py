@@ -386,7 +386,7 @@ class IRRenderer(object):
     rendered by native LLVM tools."""
 
     @staticmethod
-    def render(mod, out=sys.stdout):
+    def render(mod, out=sys.stdout, implicit_labels=True):
         if mod.target_info:
             for t in mod.target_info:
                 print >>out, t
@@ -412,7 +412,8 @@ class IRRenderer(object):
             for b in f:
                 if last_b: print >>out
                 if b.name[0].isdigit():
-                    print >>out, ";%s:" % b.name
+                    if implicit_labels:
+                        print >>out, ";%s:" % b.name
                 else:
                     comment = b.comment if b.comment else ""
                     print >>out, "%s:%s" % (b.name, comment)
