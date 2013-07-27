@@ -125,6 +125,15 @@ class DigraphAdjList(GraphWithNodeAttrs):
         super(DigraphAdjList, self).__init__()
         self.neigh_list = {}
 
+    @classmethod
+    def from_neigh_list(cls, neigh_list):
+        self = cls()
+        for node, neighs in neigh_list.iteritems():
+            self.add_node(node)
+            for n in neighs:
+                self.add_edge(node, n)
+        return self
+
     def from_graph(self, graph):
         if graph.is_edge_based():
             for from_node, to_node in graph.iter_edges():
@@ -180,6 +189,9 @@ class DigraphAdjList(GraphWithNodeAttrs):
                 neighs.remove(n)
             except ValueError:
                 pass
+
+    def __eq__(self, other):
+        return self.neigh_list == other.neigh_list
 
     def __str__(self):
         return str(self.neigh_list)
