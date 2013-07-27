@@ -43,6 +43,11 @@ class Liveness(object):
     def live_out(self, inst):
         return self._live_out[inst]
 
+    def back_annotate(self):
+        "Annotate input function with liveness information."
+        for inst, live_out in self.live_out_map().iteritems():
+            inst.comment = "\t;live_out: %s" % sorted(list(live_out))
+
 
 if __name__ == "__main__":
     with open(sys.argv[1]) as asm:
