@@ -17,6 +17,10 @@ class IRParser(object):
         return args
 
     @staticmethod
+    def next_token(s):
+        return s.split(None, 1)
+
+    @staticmethod
     def convert_arg(arg, type=None):
         if arg[0] == "!":
             # Tags, so far just return as string
@@ -134,7 +138,7 @@ class IRParser(object):
                         inst.offseted = True
                         rhs = t
                 homotype = True
-                if opcode in set(["load", "store"]):
+                if opcode in set(["load", "store", "getelementptr"]):
                     homotype = False
                 if homotype:
                     type, rhs = rhs.split(None, 1)
@@ -153,6 +157,12 @@ class IRParser(object):
                         inst.incoming_vars.append((self.convert_arg(v, type), l))
 
                 else:
+                    if opcode == "getelementptr":
+                        t, rhs2 = self.next_token(rhs)
+                        print (t, rhs2)
+                        if t == "inbounds":
+                            inst.inbounds = True
+                            rhs = rhs2
                     args = self.split(rhs)
                     args = [self.convert_arg(x, type) for x in args]
                     if opcode == "br" and len(args) == 3:
