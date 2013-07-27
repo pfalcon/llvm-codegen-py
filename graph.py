@@ -27,6 +27,14 @@ class IGraph(object):
         "Return node's degree, i.e. number of its neighbors."
         return len(self.neighs(n))
 
+    def remove(self, n):
+        "Remove node and all its edges from the graph."
+        raise NotImplementedError
+
+    def is_edge_based(self):
+        "Return True is node-based ops like iter_nodes(), neighs() are expensive."
+        raise NotImplementedError
+
 
 class DigraphEdgeList(IGraph):
 
@@ -41,6 +49,9 @@ class DigraphEdgeList(IGraph):
         for from_node, to_node in edge_list:
             self.add_edge(from_node, to_node)
         return self
+
+    def is_edge_based(self):
+        return True
 
     def empty(self):
         return len(self.edge_list) == 0
@@ -91,6 +102,18 @@ class DigraphAdjList(IGraph):
     def __init__(self):
         self.neigh_list = {}
 
+    def from_graph(self, graph):
+        if graph.is_edge_based():
+            for from_node, to_node in graph.iter_edges():
+                neighs = self.neigh_list.get(from_node, [])
+                neighs.append(to_node)
+                self.neigh_list[from_node] = neighs
+        else:
+            raise NotImplementedError
+
+    def is_edge_based(self):
+        return False
+
     def empty(self):
         return len(self.neigh_list) == 0
 
@@ -113,6 +136,32 @@ class DigraphAdjList(IGraph):
         for node, neighs in self.neigh_list.iteritems():
             for neigh in neighs:
                 yield (node, neigh)
+
+    def iter_nodes(self):
+        return self.neigh_list.iterkeys()
+
+    def add_edge(self, from_node, to_node):
+        if from_node not in self.neigh_list:
+            self.neigh_list[from_node] = []
+        self.neigh_list[from_node].append(to_node)
+
+    def remove(self, n):
+        "Remove node and all its edges from the graph."
+        del self.neigh_list[n]
+        for nd, neighs in self.neigh_list.iteritems():
+            try:
+                neighs.remove(n)
+            except ValueError:
+                pass
+
+
+class UngraphAdjList(DigraphAdjList):
+    """Undirected graph using adjacency list. Implementation
+    maintains edges of both direction between nodes.
+    """
+    def add_edge(self, from_node, to_node):
+        super(UngraphAdjList, self).add_edge(from_node, to_node)
+        super(UngraphAdjList, self).add_edge(to_node, from_node)
 
 
 class Digraph(object):
