@@ -147,14 +147,13 @@ class IRParser(object):
                 inst.type = type
                 print "!", rhs
                 if opcode == "phi":
-                    m = re.match(r"\[(.+?)\] *, *\[(.+?)\]", rhs)
-                    labels = self.split(m.group(1))
-                    vars = self.split(m.group(2))
-#                    print [x.strip() for x in m.groups()]
-                    print labels, vars
                     inst.incoming_vars = []
-                    for v, l in zip(vars, labels):
-                        inst.incoming_vars.append((self.convert_arg(v, type), l))
+                    while rhs.strip():
+                        m = re.match(r"\[(.+?) *, *(.+?)\]( *, *)?(.*)", rhs)
+                        var = m.group(1).strip()
+                        label = m.group(2).strip()
+                        rhs = m.group(4)
+                        inst.incoming_vars.append((self.convert_arg(var, type), label[1:]))
 
                 else:
                     if opcode == "getelementptr":
