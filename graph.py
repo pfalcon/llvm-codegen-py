@@ -6,6 +6,10 @@ class IGraph(object):
         "Return True if graph is empty."
         raise NotImplementedError
 
+    def add_node(self, node):
+        "Add node to a graph."
+        raise NotImplementedError
+
     def add_edge(self, from_node, to_node):
         """Add edge between 2 nodes. If any of the nodes does not exist,
         it will be created."""
@@ -36,11 +40,26 @@ class IGraph(object):
         raise NotImplementedError
 
 
-class DigraphEdgeList(IGraph):
+class GraphWithNodeAttrs(IGraph):
+
+    def __init__(self):
+        self.node_attrs = {}
+
+    def get_node_attr(self, node, attr):
+        "Get node attribute (arbitrary named values attached to node)."
+        return self.node_attrs.setdefault(node, {}).get(attr)
+
+    def set_node_attr(self, node, attr, val):
+        "Set node attribute (arbitrary named values attached to node)."
+        self.node_attrs.setdefault(node, {})[attr] = val
+
+
+class DigraphEdgeList(GraphWithNodeAttrs):
 
     directed = True
 
     def __init__(self):
+        super(DigraphEdgeList, self).__init__()
         self.edge_list = set()
 
     @classmethod
@@ -73,6 +92,9 @@ class DigraphEdgeList(IGraph):
     def __eq__(self, other):
         return self.edge_list == other.edge_list
 
+    def __str__(self):
+        return str(self.edge_list)
+
 
 class UngraphEdgeList(DigraphEdgeList):
 
@@ -96,18 +118,20 @@ class UngraphEdgeList(DigraphEdgeList):
         return neighs
 
 
-class DigraphAdjList(IGraph):
+class DigraphAdjList(GraphWithNodeAttrs):
     "Graph representation based on adjacency (neighborhood) list for each node."
 
     def __init__(self):
+        super(DigraphAdjList, self).__init__()
         self.neigh_list = {}
 
     def from_graph(self, graph):
         if graph.is_edge_based():
             for from_node, to_node in graph.iter_edges():
-                neighs = self.neigh_list.get(from_node, [])
-                neighs.append(to_node)
-                self.neigh_list[from_node] = neighs
+                self.add_edge(from_node, to_node)
+#                neighs = self.neigh_list.get(from_node, [])
+#                neighs.append(to_node)
+#                self.neigh_list[from_node] = neighs
         else:
             raise NotImplementedError
 
@@ -140,9 +164,12 @@ class DigraphAdjList(IGraph):
     def iter_nodes(self):
         return self.neigh_list.iterkeys()
 
+    def add_node(self, node):
+        if node not in self.neigh_list:
+            self.neigh_list[node] = []
+
     def add_edge(self, from_node, to_node):
-        if from_node not in self.neigh_list:
-            self.neigh_list[from_node] = []
+        self.add_node(from_node)
         self.neigh_list[from_node].append(to_node)
 
     def remove(self, n):
@@ -153,6 +180,9 @@ class DigraphAdjList(IGraph):
                 neighs.remove(n)
             except ValueError:
                 pass
+
+    def __str__(self):
+        return str(self.neigh_list)
 
 
 class UngraphAdjList(DigraphAdjList):
