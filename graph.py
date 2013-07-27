@@ -2,14 +2,18 @@ class IGraph(object):
 
     # directed = None
 
+    def empty(self):
+        "Return True if graph is empty."
+        raise NotImplementedError
+
     def add_edge(self, from_node, to_node):
         """Add edge between 2 nodes. If any of the nodes does not exist,
         it will be created."""
-        pass
+        raise NotImplementedError
 
     def iter_edges(self):
         "Iterate over all edges in the graph."
-        pass
+        raise NotImplementedError
 
 
 class DigraphEdgeList(IGraph):
@@ -25,6 +29,9 @@ class DigraphEdgeList(IGraph):
         for from_node, to_node in edge_list:
             self.add_edge(from_node, to_node)
         return self
+
+    def empty(self):
+        return len(self.edge_list) == 0
 
     def add_edge(self, from_node, to_node):
         self.edge_list.add((from_node, to_node))
