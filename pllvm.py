@@ -21,6 +21,8 @@ def render_untyped_arg(arg):
     return str(arg)
 
 def render_typed_arg(arg):
+    if isinstance(arg, str):
+        return arg
     attrs = getattr(arg, "attributes", set())
     flags = ""
     if ATTR_NO_CAPTURE in attrs:
