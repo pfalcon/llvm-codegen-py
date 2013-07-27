@@ -61,17 +61,21 @@ class IRParser(object):
         self.tmp_count += 1
         return t
 
-    def make_block(self, label=None):
+    def make_block(self, label=None, comment=None):
         if not label:
             label = self.next_tmp()
         self.block = PBasicBlock(self.func, label)
+        self.block.comment = comment
         self.func.append(self.block)
         self.block.parent = self.func
 
     def parse(self):
         for l in self.f:
-            l = re.sub(r";.*", "", l)
-            l = l.rstrip()
+            if l[-1] == "\n":
+                l = l[:-1]
+            m = re.match(r"(.*?)([ \t]*;.*)?$", l)
+            l = m.group(1)
+            comment = m.group(2)
             if not l:
                 continue
 
@@ -119,7 +123,7 @@ class IRParser(object):
                     continue
 
                 if l[-1] == ":":
-                    self.make_block(l[:-1].strip())
+                    self.make_block(l[:-1].strip(), comment)
                     continue
 
                 if self.block is None:
@@ -138,6 +142,7 @@ class IRParser(object):
                 inst = PInstruction()
                 inst.name = lhs
                 inst.opcode_name = opcode
+                inst.comment = comment
                 if opcode in ("icmp", "bricmp"):
                     pred, rhs = rhs.split(None, 1)
                     inst.predicate = pred

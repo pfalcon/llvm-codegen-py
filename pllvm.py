@@ -241,45 +241,47 @@ class PInstruction(object):
                     s += ", align %d" % self.alignment
                 if self.metadata:
                     s += ", " + self.metadata
-                return s
-            if self.opcode_name == "icmp":
-                return INDENT + "%%%s = %s %s %s %s" % (self.name, self.opcode_name, self.predicate, self.operands[0].type, render_untyped_args(self.operands))
-            if self.opcode_name == "phi":
+            elif self.opcode_name == "icmp":
+                s = INDENT + "%%%s = %s %s %s %s" % (self.name, self.opcode_name, self.predicate, self.operands[0].type, render_untyped_args(self.operands))
+            elif self.opcode_name == "phi":
                 args = ", ".join(["[ %s, %%%s ]" % x for x in self.incoming_vars])
-                return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, args)
-            if self.opcode_name == "call":
+                s = INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, args)
+            elif self.opcode_name == "call":
                 func = self.operands[-1]
                 args = self.operands[:-1]
                 if func.vararg:
-                    return INDENT + "%%%s = %s %s %s(%s)" % (self.name, self.opcode_name, func.type, func, render_typed_args(args))
+                    s = INDENT + "%%%s = %s %s %s(%s)" % (self.name, self.opcode_name, func.type, func, render_typed_args(args))
                 else:
-                    return INDENT + "%%%s = %s %s %s(%s)" % (self.name, self.opcode_name, self.type, func, render_typed_args(args))
-            if self.opcode_name == "getelementptr":
+                    s = INDENT + "%%%s = %s %s %s(%s)" % (self.name, self.opcode_name, self.type, func, render_typed_args(args))
+            elif self.opcode_name == "getelementptr":
                 op = "getelementptr"
                 if self.inbounds:
                     op += " inbounds"
-                return INDENT + "%%%s = %s %s" % (self.name, op, render_typed_args( self.operands))
-            return INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, render_untyped_args(self.operands))
+                s = INDENT + "%%%s = %s %s" % (self.name, op, render_typed_args( self.operands))
+            else:
+                s = INDENT + "%%%s = %s %s %s" % (self.name, self.opcode_name, self.type, render_untyped_args(self.operands))
         else:
             if len(self.operands) == 0:
                 # Not completely initialized inst, still render for parser, etc. debugging
-                return INDENT + "%s ???" % self.opcode_name
-            if self.opcode_name == "ret":
-                return INDENT + "%s %s %s" % (self.opcode_name, self.operands[0].type, self.operands[0])
-            if self.opcode_name == "store":
-                return INDENT + "%s %s, %s" % (self.opcode_name, render_arg(self.operands[0]), render_arg(self.operands[1]))
-            if self.opcode_name == "br":
-                if len(self.operands) == 0:
-                    return INDENT + "br ???"
+                s = INDENT + "%s ???" % self.opcode_name
+            elif self.opcode_name == "ret":
+                s = INDENT + "%s %s %s" % (self.opcode_name, self.operands[0].type, self.operands[0])
+            elif self.opcode_name == "store":
+                s = INDENT + "%s %s, %s" % (self.opcode_name, render_arg(self.operands[0]), render_arg(self.operands[1]))
+            elif self.opcode_name == "br":
                 args_no = [0]
                 if len(self.operands) == 3:
                     args_no = [0, 2, 1]
-                return INDENT + "%s %s" % (self.opcode_name, ", ".join([render_arg(self.operands[x]) for x in args_no]))
-            if self.opcode_name == "bricmp":
+                s = INDENT + "%s %s" % (self.opcode_name, ", ".join([render_arg(self.operands[x]) for x in args_no]))
+            elif self.opcode_name == "bricmp":
                 args_no = [0, 1, 3, 2]
-                return INDENT + "%s %s %s" % (self.opcode_name, self.predicate, ", ".join([render_arg(self.operands[x]) for x in args_no]))
+                s = INDENT + "%s %s %s" % (self.opcode_name, self.predicate, ", ".join([render_arg(self.operands[x]) for x in args_no]))
+            else:
+                s = INDENT + "%s %s" % (self.opcode_name, ", ".join([render_arg(x) for x in self.operands]))
 
-            return INDENT + "%s %s" % (self.opcode_name, ", ".join([render_arg(x) for x in self.operands]))
+        if self.comment:
+            s += self.comment
+        return s
 
     def __repr__(self):
         return self.__str__()
@@ -405,7 +407,8 @@ class IRRenderer(object):
                 if b.name[0].isdigit():
                     print >>out, ";%s:" % b.name
                 else:
-                    print >>out, "%s:" % b.name
+                    comment = b.comment if b.comment else ""
+                    print >>out, "%s:%s" % (b.name, comment)
                 for i in b:
                     print >>out, i
                 last_b = b
