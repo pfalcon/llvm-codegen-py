@@ -15,6 +15,10 @@ class IGraph(object):
         "Iterate over all edges in the graph."
         raise NotImplementedError
 
+    def iter_nodes(self):
+        "Iterate over all nodes in the graph."
+        raise NotImplementedError
+
 
 class DigraphEdgeList(IGraph):
 
@@ -39,6 +43,14 @@ class DigraphEdgeList(IGraph):
     def iter_edges(self):
         return iter(self.edge_list)
 
+    def iter_nodes(self):
+        seen = set()
+        for nodes in self.edge_list:
+            for n in nodes:
+                if n not in seen:
+                    seen.add(n)
+                    yield n
+
     def __eq__(self, other):
         return self.edge_list == other.edge_list
 
@@ -53,6 +65,36 @@ class UngraphEdgeList(DigraphEdgeList):
         else:
             edge = (to_node, from_node)
         DigraphEdgeList.add_edge(self, *edge)
+
+
+class DigraphAdjList(IGraph):
+    "Graph representation based on adjacency (neighborhood) list for each node."
+
+    def __init__(self):
+        self.neigh_list = {}
+
+    def empty(self):
+        return len(self.neigh_list) == 0
+
+    def neighs(self, n):
+        "Return list of node's neighbors."
+        return self.neigh_list[n]
+
+    def succ(self, n):
+        return self.neighs(n)
+
+    def pred(self, n):
+        preds = []
+        for fr, to in self.iter_edges():
+            if to == n:
+                preds.append(fr)
+        return preds
+
+    def iter_edges(self):
+        "Iterate over all edges in the graph."
+        for node, neighs in self.neigh_list.iteritems():
+            for neigh in neighs:
+                yield (node, neigh)
 
 
 class Digraph(object):
