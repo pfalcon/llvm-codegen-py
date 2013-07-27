@@ -184,6 +184,7 @@ class PConstantExpr(object):
 class PInstruction(object):
 
     def __init__(self, *args, **kwargs):
+        self.comment = None
         self.metadata = None
         self.alignment = None
         if args or kwargs:

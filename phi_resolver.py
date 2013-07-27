@@ -2,7 +2,7 @@
 import sys
 import re
 
-from llvm2py import *
+from pllvm import *
 
 
 class PhiResolver(object):
