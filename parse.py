@@ -12,6 +12,11 @@ class IRParser(object):
         self.tmp_count = 0
 
     @staticmethod
+    def split(s):
+        args = [x.strip() for x in s.split(",")]
+        return args
+
+    @staticmethod
     def convert_arg(arg, type=None):
         if arg[0] == "!":
             # Tags, so far just return as string
@@ -136,14 +141,26 @@ class IRParser(object):
                 else:
                     type = None
                 inst.type = type
-                args = [x.strip() for x in rhs.split(",")]
-                args = [self.convert_arg(x, type) for x in args]
-                if opcode == "br" and len(args) == 3:
-                    args = [args[0], args[2], args[1]]
-                if opcode == "bricmp":
-                    args = [args[0], args[1], args[3], args[2]]
-                inst.operands = args
-#                print "out:", str(inst).strip()
+                print "!", rhs
+                if opcode == "phi":
+                    m = re.match(r"\[(.+?)\] *, *\[(.+?)\]", rhs)
+                    labels = self.split(m.group(1))
+                    vars = self.split(m.group(2))
+#                    print [x.strip() for x in m.groups()]
+                    print labels, vars
+                    inst.incoming_vars = []
+                    for v, l in zip(vars, labels):
+                        inst.incoming_vars.append((self.convert_arg(v, type), l))
+
+                else:
+                    args = self.split(rhs)
+                    args = [self.convert_arg(x, type) for x in args]
+                    if opcode == "br" and len(args) == 3:
+                        args = [args[0], args[2], args[1]]
+                    if opcode == "bricmp":
+                        args = [args[0], args[1], args[3], args[2]]
+                    inst.operands = args
+#                    print "out:", str(inst).strip()
                 self.block.append(inst)
                 inst.parent = self.block
 
