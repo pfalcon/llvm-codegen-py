@@ -181,6 +181,8 @@ class PConstantExpr(object):
 class PInstruction(object):
 
     def __init__(self, *args, **kwargs):
+        self.metadata = None
+        self.alignment = None
         if args or kwargs:
             self.name, self.type, self.opcode_name, self.operands = args
         else:
@@ -231,10 +233,15 @@ class PInstruction(object):
         if self.name:
             if self.opcode_name == "load":
                 if len(self.operands) == 1:
-                    return INDENT + "%%%s = %s %s" % (self.name, self.opcode_name, render_arg(self.operands[0]))
+                    s = INDENT + "%%%s = %s %s" % (self.name, self.opcode_name, render_arg(self.operands[0]))
                 else:
                     # Extended MEM[p + N] form
-                    return INDENT + "%%%s = %s getelementptr %s" % (self.name, self.opcode_name, render_typed_args(self.operands))
+                    s = INDENT + "%%%s = %s getelementptr %s" % (self.name, self.opcode_name, render_typed_args(self.operands))
+                if self.alignment:
+                    s += ", align %d" % self.alignment
+                if self.metadata:
+                    s += ", " + self.metadata
+                return s
             if self.opcode_name == "icmp":
                 return INDENT + "%%%s = %s %s %s %s" % (self.name, self.opcode_name, self.predicate, self.operands[0].type, render_untyped_args(self.operands))
             if self.opcode_name == "phi":

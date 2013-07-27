@@ -164,6 +164,13 @@ class IRParser(object):
                             inst.inbounds = True
                             rhs = rhs2
                     args = self.split(rhs)
+                    if args[-1][0] == "!":
+                        # TODO: make llvmpy compatible
+                        inst.metadata = args[-1]
+                        args = args[:-1]
+                    if args[-1].startswith("align "):
+                        inst.alignment = int(args[-1].split(None, 1)[1])
+                        args = args[:-1]
                     args = [self.convert_arg(x, type) for x in args]
                     if opcode == "br" and len(args) == 3:
                         args = [args[0], args[2], args[1]]
