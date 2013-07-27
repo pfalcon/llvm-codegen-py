@@ -19,6 +19,14 @@ class IGraph(object):
         "Iterate over all nodes in the graph."
         raise NotImplementedError
 
+    def neighs(self, n):
+        "Return list of node's neighbors."
+        raise NotImplementedError
+
+    def degree(self, n):
+        "Return node's degree, i.e. number of its neighbors."
+        return len(self.neighs(n))
+
 
 class DigraphEdgeList(IGraph):
 
@@ -65,6 +73,16 @@ class UngraphEdgeList(DigraphEdgeList):
         else:
             edge = (to_node, from_node)
         DigraphEdgeList.add_edge(self, *edge)
+
+    def neighs(self, n):
+        "Return list of node's neighbors."
+        neighs = []
+        for from_node, to_node in self.edge_list:
+            if from_node == n:
+                neighs.append(to_node)
+            elif to_node == n:
+                neighs.append(from_node)
+        return neighs
 
 
 class DigraphAdjList(IGraph):
