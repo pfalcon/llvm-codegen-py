@@ -62,9 +62,12 @@ class PModule(object):
         return iter(self.functions)
 
     def __getitem__(self, key):
-        for f in self:
-            if f.name == key:
-                return f
+        if isinstance(key, int):
+            return self.functions[key]
+        else:
+            for f in self:
+                if f.name == key:
+                    return f
         return None
 
 
