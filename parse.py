@@ -26,27 +26,35 @@ class IRParser(object):
             # Tags, so far just return as string
             return arg
 
+        attrs = set()
         if type is None:
             type, arg = arg.split(None, 1)
 
             if " " in arg:
                 mod, arg = arg.split(None, 1)
-                assert mod == "nocapture"
+                if mod == "nocapture":
+                    attrs.add(ATTR_NO_CAPTURE)
+                else:
+                    assert False, "%s: unsupported attributes"
 
         try:
             v = int(arg)
             return PConstantInt(v, type)
         except:
             pass
+
         if arg[0] == "%":
-            return PTmpVariable(arg[1:], type)
-        if arg[0] == "@":
-            return PGlobalVariableRef(arg[1:], type)
-        if arg.startswith("label "):
+            v = PTmpVariable(arg[1:], type)
+        elif arg[0] == "@":
+            v = PGlobalVariableRef(arg[1:], type)
+        elif arg.startswith("label "):
             label = arg.split(None, 1)[1]
             assert label[0] == "%"
-            return PLabelRef(label[1:])
-        assert False, arg
+            v = PLabelRef(label[1:])
+        else:
+            assert False, "Unknown arg syntax: " + arg
+        v.attributes = attrs
+        return v
 
     def next_tmp(self):
         t = str(self.tmp_count)
