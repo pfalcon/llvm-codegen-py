@@ -98,6 +98,7 @@ class IRParser(object):
                     self.func = PFunction(m.group("name"), m.group("type"), args)
                     mods = m.group("mods").strip().split()
                     self.func.does_not_throw = "nounwind" in mods
+                    self.func.readonly = "readonly" in mods
                     self.mod.append(self.func)
                     self.func.parent = self.mod
                     continue

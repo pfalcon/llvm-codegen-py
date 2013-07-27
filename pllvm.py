@@ -332,6 +332,7 @@ class PFunction(object):
         self.bblocks = []
         self.is_declaration = False
         self.does_not_throw = True
+        self.readonly = False
         self.vararg = False
 
     def append(self, inst):
@@ -364,6 +365,8 @@ class PFunction(object):
         flags = ""
         if self.does_not_throw:
             flags += " nounwind"
+        if self.readonly:
+            flags += " readonly"
         if self.is_declaration:
 #            return "declare %s @%s(%s)" % (self.result_type, self.name, render_types(self.args))
             # This handles stuff like varargs
