@@ -29,3 +29,14 @@ def test_appel_2ed_p221():
     new = out.getvalue().splitlines(True)
     diff = "".join(difflib.unified_diff(org, new))
     assert diff == "", "Parse roundtrip mismatch:\n" + diff
+
+def test_strlen():
+    f = "strlen.ll"
+    p = IRParser(open(datadir + f))
+    mod = p.parse()
+    out = StringIO()
+    IRRenderer.render(mod, out)
+    org = open(datadir + f).readlines()
+    new = out.getvalue().splitlines(True)
+    diff = "".join(difflib.unified_diff(org, new))
+    assert diff == "", "Parse roundtrip mismatch:\n" + diff
