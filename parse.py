@@ -83,6 +83,8 @@ class IRParser(object):
                 # Global context
                 if l.startswith("target "):
                     self.mod.target_info.append(l)
+                elif l.startswith("!"):
+                    self.mod.metadata.append(l)
                 elif l.startswith("@"):
                     lhs, rhs = [x.strip() for x in l.split("=", 1)]
                     var = PGlobalVariable()

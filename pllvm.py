@@ -52,6 +52,7 @@ class PModule(object):
         self.functions = []
         self.global_variables = []
         self.target_info = []
+        self.metadata = []
 
     def append(self, inst):
         self.functions.append(inst)
@@ -420,6 +421,11 @@ class IRRenderer(object):
                 last_b = b
             print >>out, "}"
             last_f = f
+
+        if mod.metadata:
+            print >>out
+            for t in mod.metadata:
+                print >>out, t
 
 
 if __name__ == "__main__":
