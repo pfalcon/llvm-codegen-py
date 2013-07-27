@@ -1,4 +1,5 @@
 import os
+from pprint import pprint
 
 from graph import *
 from parse import *
@@ -46,3 +47,15 @@ def test_appel_2ed_p204_llvm_variant():
     for i, inst in enumerate(f.iter_insts()):
         print i, inst
         assert live_ranges[inst] == expected_ranges[i], "[%s] %s vs %s" % (inst, live_ranges[inst], expected_ranges[i])
+
+
+def test_clang_strlen():
+    p = IRParser(open(datadir + "strlen.ll.nossa"))
+    mod = p.parse()
+    f = mod[0]
+    print f
+    l = Liveness(f)
+    live_ranges = l.live_out_map()
+    pprint(live_ranges)
+    l.back_annotate()
+    IRRenderer.render(mod)
