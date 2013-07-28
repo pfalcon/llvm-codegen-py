@@ -36,7 +36,10 @@ class RegColoring:
 
         while self.node_stack:
             node, neighs = self.node_stack.pop()
-            self.g.add_with_neighs(node, neighs)
+#            self.g.add_with_neighs(node, neighs)
+            self.g.add_node(node)
+            for n in neighs:
+                self.g.add_edge(node, n)
 
             n_neighs = self.g.neighs(node)
             assert neighs == n_neighs

@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from graph import Ungraph
+from graph import UngraphAdjList as Ungraph
 from graph_color import RegColoring
 
 
@@ -10,7 +10,6 @@ def assert_coloring(g, colors, expected_coloring):
     assert c.simplify()
     c.select()
     print c.g
-    c.g.normalize()
     assert c.g == org_g
     coloring = sorted(c.get_coloring())
     assert coloring == expected_coloring, coloring
@@ -68,7 +67,6 @@ def test_appel_2ed_p221():
     }
 
     g = Ungraph.from_neigh_list(NEIGHS)
-    g.normalize()
     assert_coloring(g, 4,
         [('b', 1), ('c', 2), ('d', 2), ('e', 2), ('f', 3), ('g', 2), ('h', 0), ('j', 1), ('k', 0), ('m', 0)]
     )
