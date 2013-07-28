@@ -1,4 +1,3 @@
-from graph import Ungraph
 from copy import deepcopy
 from pprint import pprint
 
