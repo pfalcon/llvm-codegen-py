@@ -3,7 +3,7 @@
 
 define i32 @func(i32 %k, i32 %j) {
 entry:
-  %g = load getelementptr i32* %j, i32 10
+  %g = load getelementptr i32* %j, i32 12
   %h = sub i32 %k, 1
   %f = mul i32 %g, %h
   %e = load getelementptr i32* %j, i32 8
