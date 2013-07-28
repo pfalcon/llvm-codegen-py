@@ -33,3 +33,7 @@ def test_appel_2ed_p204():
 def test_appel_2ed_p221():
     expected = {'c': 2, 'b': 1, 'e': 2, 'd': 2, 'g': 2, 'f': 3, 'h': 0, 'k': 0, 'j': 1, 'm': 0}
     reg_alloc("appel-2ed-p221.ll", 4, expected)
+
+def test_clang_strlen():
+    expected = {'l.01': 0, '1': 1, 'p': 0, '3': 3, '2': 2, '5': 0, '4': 1, '6': 2, 'l.0.lcssa': 1, '.02': 3}
+    reg_alloc("strlen.ll.nossa", 4, expected)
