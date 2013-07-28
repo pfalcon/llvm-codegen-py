@@ -33,3 +33,8 @@ class RegAlloc(object):
             for a in i.operands:
                 if isinstance(a, PTmpVariable):
                     a.name = self.reg(a.name)
+        # Remove void moves
+        for i in list(self.func.iter_insts()):
+            if i.opcode_name == "mov" and isinstance(i.operands[0], PTmpVariable):
+                if i.name == i.operands[0].name:
+                    i.parent.remove(i)
