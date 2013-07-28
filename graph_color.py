@@ -27,7 +27,7 @@ class RegColoring:
                     print "Graph after removal:", self.g
                     break
             if not found:
-                raise False
+                return False
 
         return True
 
