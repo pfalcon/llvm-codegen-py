@@ -11,7 +11,8 @@ def assert_coloring(g, colors, expected_coloring):
     c.select()
     print c.g
     assert c.g == org_g
-    coloring = sorted(c.get_coloring())
+    coloring = c.get_coloring()
+    coloring = sorted(coloring.items())
     assert coloring == expected_coloring, coloring
     print "-----------"
 

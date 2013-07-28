@@ -53,4 +53,4 @@ class RegColoring:
             print "color %s = %s" % (node, remaining_colors[0])
 
     def get_coloring(self):
-        return [(n, self.g.get_node_attr(n, "color")) for n in self.g.iter_nodes()]
+        return {n: self.g.get_node_attr(n, "color") for n in self.g.iter_nodes()}
