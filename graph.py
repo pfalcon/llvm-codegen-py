@@ -175,11 +175,11 @@ class DigraphAdjList(GraphWithNodeAttrs):
 
     def add_node(self, node):
         if node not in self.neigh_list:
-            self.neigh_list[node] = []
+            self.neigh_list[node] = set()
 
     def add_edge(self, from_node, to_node):
         self.add_node(from_node)
-        self.neigh_list[from_node].append(to_node)
+        self.neigh_list[from_node].add(to_node)
 
     def remove(self, n):
         "Remove node and all its edges from the graph."
@@ -187,7 +187,8 @@ class DigraphAdjList(GraphWithNodeAttrs):
         for nd, neighs in self.neigh_list.iteritems():
             try:
                 neighs.remove(n)
-            except ValueError:
+            # Exception type depends on underlying storage: [] or set()
+            except (KeyError, ValueError):
                 pass
 
     def __eq__(self, other):
