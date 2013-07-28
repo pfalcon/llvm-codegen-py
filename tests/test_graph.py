@@ -19,3 +19,8 @@ def test_ungraph_adj_compare():
 
     h2 = UngraphAdjList.from_neigh_list({"a": ["b"]})
     assert g1 != h2
+
+    g1.add_node("b")
+    assert g1 != h2
+    g1.add_edge("a", "b")
+    assert g1 == h2
