@@ -7,11 +7,11 @@ contains some hacks towards:
 
 1. Graph-based register allocation.
 2. Parsing LLVM IR into Python-native objects, with output support,
-aiming towards 100% roundrip.
+aiming towards 100% roundtrip.
 3. Utilities to transform LLVM encoded as Python objects, for example,
 converting out of SSA form.
 
-None of these separate features are complete though, so it may be useful:
+These separate features are 100% complete either, so it may be useful:
 
 1. As a starting base if you wanted to do something similar (I wish I
 didn't have start from scratch myself).
