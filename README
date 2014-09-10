@@ -1,5 +1,5 @@
 The ultimate goal of this project is to make easy to develop a
-codegenaration backend in Python for arbitrary CPU, which takes LLVM IR
+code genaration backend in Python for an arbitrary CPU, taking LLVM IR
 as input.
 
 However, the code is currently very far away from that aim, and just
@@ -11,7 +11,7 @@ aiming towards 100% roundtrip.
 3. Utilities to transform LLVM encoded as Python objects, for example,
 converting out of SSA form.
 
-These separate features are 100% complete either, so it may be useful:
+These separate features are not 100% complete either, so it may be useful:
 
 1. As a starting base if you wanted to do something similar (I wish I
 didn't have start from scratch myself).
