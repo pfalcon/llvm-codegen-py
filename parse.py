@@ -116,10 +116,13 @@ class IRParser(object):
                     self.mod.global_variables.append(var)
 
                 elif l.startswith("define "):
-                    m = re.match(r"define (?P<type>.+?) @(?P<name>.+?)\((?P<args>.+?)\)(?P<mods>.*?) \{", l)
+                    m = re.match(r"define (?P<type>.+?) @(?P<name>.+?)\((?P<args>.*?)\)(?P<mods>.*?) \{", l)
                     assert m, "Syntax error in func definition:" + l
-#                    print "!", m.groupdict()
-                    args = [x.strip() for x in m.group("args").split(",")]
+                    args = m.group("args")
+                    if not args:
+                        args = []
+                    else:
+                        args = [x.strip() for x in args.split(",")]
                     args = [self.convert_arg(x) for x in args]
                     self.func = PFunction(m.group("name"), m.group("type"), args)
                     mods = m.group("mods").strip().split()
