@@ -28,14 +28,17 @@ class IRParser(object):
 
         attrs = set()
         if type is None:
-            type, arg = arg.split(None, 1)
+            m = re.match(r"(\[.+?\]|[0-9A-Za-z_]+) (.+)", arg)
+            type, arg = m.groups()
+            print m.groups()
+            #type, arg = arg.split(None, 1)
 
-            if " " in arg:
+            if not arg.startswith('c"') and " " in arg:
                 mod, arg = arg.split(None, 1)
                 if mod == "nocapture":
                     attrs.add(ATTR_NO_CAPTURE)
                 else:
-                    assert False, "%s: unsupported attributes"
+                    assert False, "%s: unsupported attributes" % mod
 
         try:
             v = int(arg)
@@ -51,6 +54,8 @@ class IRParser(object):
             label = arg.split(None, 1)[1]
             assert label[0] == "%"
             v = PLabelRef(label[1:])
+        elif arg.startswith('c"'):
+            v = PConstantDataArray(arg, type)
         else:
             assert False, "Unknown arg syntax: " + arg
         v.attributes = attrs
@@ -97,6 +102,9 @@ class IRParser(object):
                         if lhs in ("private", "linkonce", "weak", "common"):
                             var.linkage = lhs
                         elif lhs == "global":
+                            pass
+                        # TODO
+                        elif lhs in ("unnamed_addr", "constant"):
                             pass
                         else:
                             break

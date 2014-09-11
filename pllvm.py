@@ -136,10 +136,11 @@ class PConstantInt(object):
         return self.__str__()
 
 class PConstantDataArray(object):
-    def __init__(self, v):
-        self.type = v.type
-        m = re.match(r"\[.+? x .+?\] (.+)", str(v))
-        self.value = m.group(1)
+    def __init__(self, v, type):
+        self.value = v
+        self.type = type
+#        m = re.match(r"\[.+? x .+?\] (.+)", str(v))
+#        self.value = m.group(1)
 
     def __str__(self):
         return str(self.value)
