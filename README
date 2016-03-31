@@ -1,5 +1,5 @@
 The ultimate goal of this project is to make easy to develop a
-code genaration backend in Python for an arbitrary CPU, taking LLVM IR
+code generation backend in Python for an arbitrary CPU, taking LLVM IR
 as input.
 
 However, the code is currently very far away from that aim, and just
