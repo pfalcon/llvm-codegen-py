@@ -1,4 +1,4 @@
-The ultimate goal of this project is to make easy to develop a
+The ultimate goal of this project is to make it easy to develop a
 code generation backend in Python for an arbitrary CPU, taking LLVM IR
 as input.
 
@@ -14,7 +14,7 @@ converting out of SSA form.
 These separate features are not 100% complete either, so it may be useful:
 
 1. As a starting base if you wanted to do something similar (I wish I
-didn't have start from scratch myself).
+hadn't had to start from scratch myself).
 2. As an example for llvmpy (http://llvmpy.org) usage.
 
 
